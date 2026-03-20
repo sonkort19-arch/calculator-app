@@ -89,19 +89,23 @@
       font-size: 15px;
     }
 
-    input[type="number"] {
+    input[type="number"],
+    input[type="text"],
+    input[type="password"],
+    select {
       width: 100%;
       min-height: 54px;
       padding: 14px 16px;
       border: 1px solid #cbd5e1;
       border-radius: 14px;
-      font-size: 20px;
+      font-size: 18px;
       outline: none;
       background: #fff;
     }
 
-    input[type="number"]:focus,
-    textarea:focus {
+    input:focus,
+    textarea:focus,
+    select:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
     }
@@ -138,6 +142,15 @@
     }
 
     .ghost:active { background: #dbe7fb; }
+
+    .danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .danger:active {
+      background: #fecaca;
+    }
 
     .status {
       min-height: 20px;
@@ -247,6 +260,84 @@
       padding: 16px 8px;
     }
 
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .role-badge {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .settings-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .settings-service {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fbfdff;
+    }
+
+    .percent-row,
+    .category-row {
+      display: grid;
+      grid-template-columns: 1fr 120px auto;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .percent-row:last-child,
+    .category-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .small-btn {
+      min-height: 44px;
+      font-size: 14px;
+      padding: 10px 12px;
+    }
+
+    .login-box {
+      max-width: 480px;
+      margin: 40px auto;
+    }
+
+    .login-actions {
+      margin-top: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 520px) {
+      .percent-row,
+      .category-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
     @media (min-width: 700px) {
       body {
         padding: 18px;
@@ -264,60 +355,118 @@
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div id="loginScreen" class="login-box">
     <div class="card">
-      <h1>Распределение по процентам</h1>
-      <p class="sub">Удобная мобильная версия. Впиши суммы, нажми «Рассчитать», потом скопируй готовый текст и отправь куда нужно.</p>
-    </div>
+      <h1>Вход</h1>
+      <p class="sub">Введите логин и пароль</p>
 
-    <div class="card">
-      <div class="grid">
+      <div class="grid" style="margin-top:12px;">
         <div class="input-block">
-          <label for="mobileAngel">Мобильный ангел</label>
-          <input id="mobileAngel" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Например 20000" />
+          <label for="loginInput">Логин</label>
+          <input id="loginInput" type="text" placeholder="Введите логин" />
         </div>
 
         <div class="input-block">
-          <label for="nova">Нова</label>
-          <input id="nova" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Например 30000" />
-        </div>
-
-        <div class="input-block">
-          <label for="tlabs">Т-лабс</label>
-          <input id="tlabs" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Например 40000" />
+          <label for="passwordInput">Пароль</label>
+          <input id="passwordInput" type="password" placeholder="Введите пароль" />
         </div>
       </div>
 
-      <div class="actions">
-        <button class="ghost" id="copyBtn" type="button">Скопировать текст</button>
-        <button class="ghost" id="clearBtn" type="button">Очистить</button>
+      <div class="login-actions">
+        <button class="primary" id="loginBtn" type="button">Войти</button>
       </div>
-      <div class="status" id="status"></div>
-    </div>
 
-    <div class="card">
-      <h3>Результат</h3>
-      <div class="result-grid" id="resultGrid">
-        <div class="empty-note">Пока пусто. Нажми «Рассчитать» внизу экрана.</div>
-      </div>
-      <div class="totals" id="totals"></div>
-    </div>
-
-    <div class="card text-box">
-      <h3>Текст для WhatsApp</h3>
-      <textarea id="output" readonly placeholder="После расчёта здесь появится готовый текст"></textarea>
-      <div class="hint">Если автоматическое копирование не сработает, текст можно выделить вручную.</div>
+      <div class="status" id="loginStatus"></div>
     </div>
   </div>
 
-  <div class="sticky-bar">
-    <div class="sticky-inner">
-      <button class="primary" id="calcBtn" type="button">Рассчитать</button>
+  <div id="appScreen" class="hidden">
+    <div class="wrap">
+      <div class="card">
+        <div class="topbar">
+          <div>
+            <h1>Распределение по процентам</h1>
+            <p class="sub">Впиши суммы, нажми «Рассчитать», потом скопируй готовый текст.</p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <span class="role-badge" id="roleBadge"></span>
+            <button class="ghost small-btn" id="settingsBtn" type="button">Настройки</button>
+            <button class="ghost small-btn" id="logoutBtn" type="button">Выйти</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="settingsCard" class="card hidden">
+        <h3>Настройки</h3>
+        <div class="settings-grid" id="settingsContent"></div>
+        <div class="actions">
+          <button class="primary" id="saveSettingsBtn" type="button">Сохранить настройки</button>
+          <button class="ghost" id="addCategoryBtn" type="button">Добавить категорию</button>
+        </div>
+        <div class="hint">Удалять можно только добавленные категории. Базовые категории защищены.</div>
+        <div class="status" id="settingsStatus"></div>
+      </div>
+
+      <div class="card">
+        <div class="grid">
+          <div class="input-block">
+            <label for="mobileAngel">Мобильный ангел</label>
+            <input id="mobileAngel" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Например 20000" />
+          </div>
+
+          <div class="input-block">
+            <label for="nova">Нова</label>
+            <input id="nova" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Например 30000" />
+          </div>
+
+          <div class="input-block">
+            <label for="tlabs">Т-лабс</label>
+            <input id="tlabs" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Например 40000" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="ghost" id="copyBtn" type="button">Скопировать текст</button>
+          <button class="ghost" id="clearBtn" type="button">Очистить</button>
+        </div>
+        <div class="status" id="status"></div>
+      </div>
+
+      <div class="card">
+        <h3>Результат</h3>
+        <div class="result-grid" id="resultGrid">
+          <div class="empty-note">Пока пусто. Нажми «Рассчитать» внизу экрана.</div>
+        </div>
+        <div class="totals" id="totals"></div>
+      </div>
+
+      <div class="card text-box">
+        <h3>Текст для WhatsApp</h3>
+        <textarea id="output" readonly placeholder="После расчёта здесь появится готовый текст"></textarea>
+        <div class="hint">Если автоматическое копирование не сработает, текст можно выделить вручную.</div>
+      </div>
+    </div>
+
+    <div class="sticky-bar">
+      <div class="sticky-inner">
+        <button class="primary" id="calcBtn" type="button">Рассчитать</button>
+      </div>
     </div>
   </div>
 
   <script>
-    const PERCENTAGES = {
+    const STORAGE_KEYS = {
+      auth: 'calc_auth_role',
+      percentages: 'calc_percentages_v2'
+    };
+
+    const USERS = {
+      admin: { login: 'admin', password: 'admin', role: 'admin', title: 'Администратор' },
+      owner: { login: '560676', password: '560676', role: 'owner', title: 'Владелец' }
+    };
+
+    const BASE_PERSON_KEYS = ['Юрий', 'Алекс', 'Эрика'];
+    const DEFAULT_STRUCTURE = {
       mobileAngel: {
         title: 'Мобильный ангел',
         items: {
@@ -331,7 +480,7 @@
           'Реклама': 1,
           'Закуп аксессуаров': 1,
           'Закуп телефонов': 1,
-          'Оклад': 18,
+          'Оклад': 18
         }
       },
       nova: {
@@ -347,7 +496,7 @@
           'Реклама': 1,
           'Закуп аксессуаров': 1,
           'Закуп телефонов': 1,
-          'Оклад': 0,
+          'Оклад': 0
         }
       },
       tlabs: {
@@ -363,14 +512,29 @@
           'Реклама': 1,
           'Закуп аксессуаров': 1,
           'Закуп телефонов': 1,
-          'Оклад': 0,
+          'Оклад': 0
         }
       }
     };
 
-    const PERSON_KEYS = ['Юрий', 'Алекс', 'Эрика'];
+    let PERCENTAGES = loadPercentages();
+    let currentRole = null;
 
     const els = {
+      loginScreen: document.getElementById('loginScreen'),
+      appScreen: document.getElementById('appScreen'),
+      loginInput: document.getElementById('loginInput'),
+      passwordInput: document.getElementById('passwordInput'),
+      loginBtn: document.getElementById('loginBtn'),
+      loginStatus: document.getElementById('loginStatus'),
+      roleBadge: document.getElementById('roleBadge'),
+      settingsBtn: document.getElementById('settingsBtn'),
+      logoutBtn: document.getElementById('logoutBtn'),
+      settingsCard: document.getElementById('settingsCard'),
+      settingsContent: document.getElementById('settingsContent'),
+      saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+      addCategoryBtn: document.getElementById('addCategoryBtn'),
+      settingsStatus: document.getElementById('settingsStatus'),
       mobileAngel: document.getElementById('mobileAngel'),
       nova: document.getElementById('nova'),
       tlabs: document.getElementById('tlabs'),
@@ -382,6 +546,27 @@
       totals: document.getElementById('totals'),
       status: document.getElementById('status')
     };
+
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function loadPercentages() {
+      const saved = localStorage.getItem(STORAGE_KEYS.percentages);
+      if (!saved) return deepClone(DEFAULT_STRUCTURE);
+
+      try {
+        const parsed = JSON.parse(saved);
+        if (!parsed || typeof parsed !== 'object') return deepClone(DEFAULT_STRUCTURE);
+        return parsed;
+      } catch {
+        return deepClone(DEFAULT_STRUCTURE);
+      }
+    }
+
+    function savePercentages() {
+      localStorage.setItem(STORAGE_KEYS.percentages, JSON.stringify(PERCENTAGES));
+    }
 
     function toNumber(value) {
       if (value === '' || value === null || value === undefined) return 0;
@@ -395,6 +580,12 @@
       }).format(num);
     }
 
+    function getPersonKeys() {
+      return BASE_PERSON_KEYS.filter(name => {
+        return Object.values(PERCENTAGES).some(service => service.items[name] !== undefined);
+      });
+    }
+
     function calcService(sum, config) {
       const result = {};
       for (const [name, percent] of Object.entries(config.items)) {
@@ -405,13 +596,13 @@
 
     function renderService(title, inputSum, data) {
       const rows = Object.entries(data)
-        .map(([name, value]) => `<div class="row"><span>${name}</span><strong>${formatMoney(value)}</strong></div>`)
+        .map(([name, value]) => `<div class="row"><span>${escapeHtml(name)}</span><strong>${formatMoney(value)}</strong></div>`)
         .join('');
 
       return `
         <div class="service-box">
           <div class="service-title">
-            <h3>${title}</h3>
+            <h3>${escapeHtml(title)}</h3>
             <span class="badge">${formatMoney(inputSum)}</span>
           </div>
           ${rows}
@@ -451,14 +642,15 @@
         tlabs: calcService(inputs.tlabs, PERCENTAGES.tlabs),
       };
 
-      const personTotals = {
-        'Юрий': 0,
-        'Алекс': 0,
-        'Эрика': 0,
-      };
+      const personKeys = getPersonKeys();
+      const personTotals = {};
+
+      personKeys.forEach(name => {
+        personTotals[name] = 0;
+      });
 
       for (const service of Object.values(services)) {
-        for (const person of PERSON_KEYS) {
+        for (const person of personKeys) {
           personTotals[person] += service[person] || 0;
         }
       }
@@ -475,7 +667,7 @@
         <div class="service-box">
           <h3>Итог по людям</h3>
           ${Object.entries(personTotals)
-            .map(([name, value]) => `<div class="row"><span>${name}</span><strong>${formatMoney(value)}</strong></div>`)
+            .map(([name, value]) => `<div class="row"><span>${escapeHtml(name)}</span><strong>${formatMoney(value)}</strong></div>`)
             .join('')}
         </div>
       `;
@@ -516,6 +708,198 @@
       els.mobileAngel.focus();
     }
 
+    function login() {
+      const login = els.loginInput.value.trim();
+      const password = els.passwordInput.value.trim();
+
+      if (login === USERS.admin.login && password === USERS.admin.password) {
+        setAuth('admin');
+        return;
+      }
+
+      if (login === USERS.owner.login && password === USERS.owner.password) {
+        setAuth('owner');
+        return;
+      }
+
+      els.loginStatus.textContent = 'Неверный логин или пароль.';
+      els.loginStatus.style.color = 'var(--danger)';
+    }
+
+    function setAuth(role) {
+      currentRole = role;
+      localStorage.setItem(STORAGE_KEYS.auth, role);
+      els.loginScreen.classList.add('hidden');
+      els.appScreen.classList.remove('hidden');
+      els.loginStatus.textContent = '';
+      els.loginInput.value = '';
+      els.passwordInput.value = '';
+      updateRoleUI();
+    }
+
+    function logout() {
+      currentRole = null;
+      localStorage.removeItem(STORAGE_KEYS.auth);
+      els.appScreen.classList.add('hidden');
+      els.loginScreen.classList.remove('hidden');
+      els.settingsCard.classList.add('hidden');
+    }
+
+    function updateRoleUI() {
+      if (currentRole === 'owner') {
+        els.roleBadge.textContent = 'Владелец';
+        els.settingsBtn.classList.remove('hidden');
+      } else {
+        els.roleBadge.textContent = 'Администратор';
+        els.settingsBtn.classList.add('hidden');
+        els.settingsCard.classList.add('hidden');
+      }
+    }
+
+    function toggleSettings() {
+      if (currentRole !== 'owner') return;
+      els.settingsCard.classList.toggle('hidden');
+      if (!els.settingsCard.classList.contains('hidden')) {
+        renderSettings();
+      }
+    }
+
+    function renderSettings() {
+      const html = Object.entries(PERCENTAGES).map(([serviceKey, service]) => {
+        const rows = Object.entries(service.items).map(([name, percent]) => {
+          const isProtected = BASE_PERSON_KEYS.includes(name) ||
+                              Object.prototype.hasOwnProperty.call(DEFAULT_STRUCTURE[serviceKey].items, name);
+
+          return `
+            <div class="percent-row">
+              <input type="text" value="${escapeAttr(name)}" data-type="name" data-service="${serviceKey}" data-old-name="${escapeAttr(name)}" ${isProtected ? 'readonly' : ''}>
+              <input type="number" step="0.01" value="${percent}" data-type="percent" data-service="${serviceKey}" data-name="${escapeAttr(name)}">
+              ${isProtected
+                ? `<button class="ghost small-btn" type="button" disabled>Базовая</button>`
+                : `<button class="danger small-btn delete-category-btn" type="button" data-service="${serviceKey}" data-name="${escapeAttr(name)}">Удалить</button>`
+              }
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="settings-service">
+            <h3>${escapeHtml(service.title)}</h3>
+            ${rows}
+          </div>
+        `;
+      }).join('');
+
+      els.settingsContent.innerHTML = html;
+
+      document.querySelectorAll('.delete-category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const service = btn.dataset.service;
+          const name = btn.dataset.name;
+          delete PERCENTAGES[service].items[name];
+          renderSettings();
+        });
+      });
+    }
+
+    function saveSettings() {
+      if (currentRole !== 'owner') return;
+
+      const newStructure = deepClone(PERCENTAGES);
+
+      document.querySelectorAll('#settingsContent .percent-row').forEach(row => {
+        const nameInput = row.querySelector('[data-type="name"]');
+        const percentInput = row.querySelector('[data-type="percent"]');
+
+        const serviceKey = nameInput.dataset.service;
+        const oldName = nameInput.dataset.oldName;
+        const newName = nameInput.value.trim();
+        const newPercent = toNumber(percentInput.value);
+
+        if (!newName) return;
+
+        if (oldName !== newName) {
+          delete newStructure[serviceKey].items[oldName];
+        }
+
+        newStructure[serviceKey].items[newName] = newPercent;
+      });
+
+      PERCENTAGES = newStructure;
+      savePercentages();
+      els.settingsStatus.textContent = 'Настройки сохранены.';
+      els.settingsStatus.style.color = 'var(--ok)';
+      calculate();
+      renderSettings();
+    }
+
+    function addCategory() {
+      if (currentRole !== 'owner') return;
+
+      const serviceKey = prompt('Куда добавить категорию? Введи: mobileAngel, nova или tlabs');
+      if (!serviceKey || !PERCENTAGES[serviceKey]) {
+        els.settingsStatus.textContent = 'Неверный сервис.';
+        els.settingsStatus.style.color = 'var(--danger)';
+        return;
+      }
+
+      const categoryName = prompt('Название новой категории');
+      if (!categoryName || !categoryName.trim()) {
+        els.settingsStatus.textContent = 'Название пустое.';
+        els.settingsStatus.style.color = 'var(--danger)';
+        return;
+      }
+
+      if (PERCENTAGES[serviceKey].items[categoryName.trim()] !== undefined) {
+        els.settingsStatus.textContent = 'Такая категория уже есть.';
+        els.settingsStatus.style.color = 'var(--danger)';
+        return;
+      }
+
+      const percentValue = prompt('Процент для новой категории', '0');
+      PERCENTAGES[serviceKey].items[categoryName.trim()] = toNumber(percentValue);
+
+      renderSettings();
+      els.settingsStatus.textContent = 'Категория добавлена. Теперь нажми "Сохранить настройки".';
+      els.settingsStatus.style.color = 'var(--ok)';
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function escapeAttr(value) {
+      return escapeHtml(value);
+    }
+
+    function boot() {
+      const savedRole = localStorage.getItem(STORAGE_KEYS.auth);
+      if (savedRole === 'admin' || savedRole === 'owner') {
+        setAuth(savedRole);
+      } else {
+        els.loginScreen.classList.remove('hidden');
+        els.appScreen.classList.add('hidden');
+      }
+    }
+
+    els.loginBtn.addEventListener('click', login);
+    els.passwordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') login();
+    });
+    els.loginInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') login();
+    });
+
+    els.settingsBtn.addEventListener('click', toggleSettings);
+    els.saveSettingsBtn.addEventListener('click', saveSettings);
+    els.addCategoryBtn.addEventListener('click', addCategory);
+    els.logoutBtn.addEventListener('click', logout);
+
     els.calcBtn.addEventListener('click', calculate);
     els.copyBtn.addEventListener('click', copyText);
     els.clearBtn.addEventListener('click', clearAll);
@@ -525,6 +909,8 @@
         if (e.key === 'Enter') calculate();
       });
     });
+
+    boot();
   </script>
 </body>
 </html>
