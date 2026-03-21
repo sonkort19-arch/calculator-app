@@ -2,764 +2,915 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#2563eb" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <title>Распределение прибыли</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230f172a'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='52' fill='%23ffffff' font-family='system-ui,Arial,sans-serif'%3E%E2%82%BD%3C/text%3E%3C/svg%3E" />
-  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%232563eb'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='52' fill='%23ffffff' font-family='system-ui,Arial,sans-serif'%3E%E2%82%BD%3C/text%3E%3C/svg%3E" />
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Распределение по процентам</title>
   <style>
-    :root{
-      --bg:#f4f7fb;
-      --card:#ffffff;
-      --text:#1f2937;
-      --muted:#6b7280;
-      --line:#e5e7eb;
-      --primary:#2563eb;
-      --primary-dark:#1d4ed8;
-      --success:#16a34a;
-      --danger:#dc2626;
-      --shadow:0 10px 30px rgba(15,23,42,.08);
-      --radius:18px;
+    :root {
+      --bg: #f3f6fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #6b7280;
+      --line: #d9e3f0;
+      --accent: #2563eb;
+      --accent-2: #1d4ed8;
+      --soft: #eef4ff;
+      --ok: #0f766e;
+      --danger: #b91c1c;
+      --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+      --radius: 18px;
     }
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    html,body{height:100%;overflow-x:hidden;-webkit-overflow-scrolling:touch}
-    body{margin:0;position:relative;overscroll-behavior:none;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
-    .hidden{display:none!important}
-    .app-shell{width:100%;max-width:100%;padding:12px;margin:0 auto}
-    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;padding:16px 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);flex-wrap:wrap}
-    .topbar-title{font-size:20px;font-weight:700}.topbar-sub{font-size:13px;color:var(--muted);margin-top:4px}.topbar-actions{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{border:none;border-radius:12px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s ease}.btn:hover{transform:translateY(-1px)}
-    .btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-dark)}.btn-light{background:#eef2ff;color:#1e3a8a}.btn-danger{background:#fee2e2;color:#991b1b}.btn-success{background:#dcfce7;color:#166534}.btn-muted{background:#f3f4f6;color:#374151}.btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
-    .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-    .login-card{width:100%;max-width:420px;background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);padding:28px}
-    .login-card h1{margin:0 0 8px;font-size:28px}.login-card p{margin:0 0 20px;color:var(--muted);line-height:1.5}
-    .field{margin-bottom:14px}.field label{display:block;margin-bottom:6px;font-size:13px;font-weight:600;color:#374151}
-    .input{width:100%;border:1px solid #d1d5db;border-radius:12px;padding:12px 14px;font-size:15px;background:#fff}
-    .auth-error{margin-bottom:12px;padding:12px;border-radius:12px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;font-size:14px}
-    .grid{display:grid;grid-template-columns:repeat(3, minmax(280px, 1fr));gap:18px}.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
-    .service-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px}.service-title h2{margin:0;font-size:20px}
-    .mode-switch{display:flex;gap:8px;margin-bottom:10px}
-    .mode-switch button{flex:1}
-    .manual-input{margin-top:4px}
-    .manual-input .manual-label{display:block;font-size:13px;font-weight:600;color:#374151;margin-bottom:6px}
-    .manual-input input{width:100%;margin-bottom:10px;padding:12px;font-size:16px;border:1px solid #d1d5db;border-radius:12px;background:#fff}
-    .upload-block{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;background:#fafafa}.upload-row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:8px}
-    .status{font-size:13px;border-radius:999px;padding:6px 10px;font-weight:700;display:inline-flex;align-items:center;gap:6px}.status-empty{background:#f3f4f6;color:#4b5563}.status-ok{background:#dcfce7;color:#166534}.status-error{background:#fee2e2;color:#991b1b}
-    .error-box{margin-top:8px;padding:10px 12px;border-radius:12px;font-size:13px;background:#fff1f2;color:#9f1239;border:1px solid #fecdd3;white-space:pre-wrap}
-    .actions-bar{display:flex;flex-direction:column;align-items:stretch;gap:12px;margin:22px 0 18px;max-width:520px;margin-left:auto;margin-right:auto}
-    .actions-bar .btn{width:100%;text-align:center;justify-content:center}
-    #copyBtn.copy-btn-hero{padding:18px 22px;font-size:18px;font-weight:800;border-radius:16px;box-shadow:0 8px 24px rgba(22,101,52,.35);max-width:none}
-    .whats-next{border:1px solid var(--line);border-radius:16px;padding:18px 20px;color:var(--muted);background:#fff;font-size:15px;line-height:1.55;text-align:center;max-width:520px;margin:0 auto}
-    .whats-next--ready{color:var(--text);background:#f0fdf4;border-color:#bbf7d0}
-    .muted{color:var(--muted)}.strong{font-weight:700}
-    .toast-wrap{position:fixed;right:16px;top:16px;z-index:3000;display:flex;flex-direction:column;gap:10px;max-width:380px}.toast{padding:12px 14px;border-radius:14px;box-shadow:var(--shadow);font-size:14px;border:1px solid transparent;background:#fff}.toast.success{border-color:#bbf7d0;background:#f0fdf4;color:#166534}.toast.error{border-color:#fecaca;background:#fef2f2;color:#991b1b}.toast.info{border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8}
-    .modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:2500}.modal{width:min(1100px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:24px;border:1px solid var(--line);box-shadow:var(--shadow);padding:22px}
-    .modal-header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;flex-wrap:wrap}.modal-header h3{margin:0;font-size:24px}
-    .settings-grid{display:grid;grid-template-columns:repeat(3,minmax(260px,1fr));gap:16px}.settings-block{border:1px solid var(--line);border-radius:18px;padding:16px;background:#fafafa}.settings-block h4{margin:0 0 12px;font-size:18px}
-    .row-cat{display:grid;grid-template-columns:1fr 90px 42px;gap:8px;margin-bottom:8px}.small-input{width:100%;border:1px solid #d1d5db;border-radius:10px;padding:10px 12px;font-size:14px;background:#fff}.icon-btn{border:none;border-radius:10px;cursor:pointer;background:#fee2e2;color:#991b1b;font-weight:700}
-    .sum-box{margin-top:10px;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:700;background:#fff;border:1px solid var(--line)}.sum-ok{color:#166534;border-color:#bbf7d0;background:#f0fdf4}.sum-bad{color:#991b1b;border-color:#fecaca;background:#fef2f2}
-    @media (max-width:1100px){.grid,.settings-grid{grid-template-columns:1fr}}
-    @media (max-width:768px){
-      .topbar{flex-direction:column;align-items:flex-start;gap:8px;padding:14px 16px;margin-bottom:14px}
-      .topbar-actions{display:flex;flex-direction:column;gap:10px;width:100%}
-      .btn{width:100%}
-      .mode-switch{flex-direction:column}
-      .mode-switch .mode-switch-btn{width:100%;flex:none;min-width:0;margin-bottom:0}
-      .topbar-actions .btn{margin-bottom:0}
-      .app-shell{padding:10px}
-      .grid{grid-template-columns:1fr;gap:20px}
-      .card{padding:14px}
-      .service-title{margin-bottom:12px}
-      .upload-block{padding:12px;margin-bottom:14px}
-      .upload-row{flex-direction:column;align-items:stretch;gap:10px;margin-bottom:6px}
-      .upload-row .btn{width:100%;margin-bottom:0;text-align:center;padding:14px 16px;font-size:15px}
-      .upload-row .status{align-self:flex-start}
-      .actions-bar{max-width:none;flex-direction:column;gap:0;margin:20px 0 20px}
-      .actions-bar .btn{width:100%;margin-bottom:10px;padding:14px 18px;font-size:16px}
-      .actions-bar .btn:last-child{margin-bottom:0}
-      #copyBtn.copy-btn-hero{padding:20px 22px;font-size:19px}
-      .whats-next{padding:16px 14px;font-size:15px;max-width:none}
-      .toast-wrap{left:12px;right:12px;max-width:none}
+
+    * { box-sizing: border-box; }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(180deg, #f7f9fd 0%, #eef4fb 100%);
+      color: var(--text);
+      padding: 12px;
+      padding-bottom: 110px;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto;
+      display: grid;
+      gap: 12px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      line-height: 1.2;
+    }
+
+    h2, h3 {
+      margin: 0 0 10px;
+    }
+
+    .sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .input-block {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fbfdff;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 15px;
+    }
+
+    input[type="number"],
+    input[type="text"],
+    input[type="password"],
+    select {
+      width: 100%;
+      min-height: 54px;
+      padding: 14px 16px;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      font-size: 18px;
+      outline: none;
+      background: #fff;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      min-height: 54px;
+      padding: 14px 16px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .primary:active { background: var(--accent-2); }
+
+    .ghost {
+      background: var(--soft);
+      color: #0f172a;
+    }
+
+    .ghost:active { background: #dbe7fb; }
+
+    .danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .danger:active {
+      background: #fecaca;
+    }
+
+    .status {
+      min-height: 20px;
+      color: var(--ok);
+      font-weight: 700;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .service-box {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fcfdff;
+    }
+
+    .service-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+      border-bottom: 1px dashed #e5e7eb;
+      font-size: 15px;
+    }
+
+    .row:last-child { border-bottom: 0; }
+
+    .row strong {
+      font-size: 15px;
+      white-space: nowrap;
+    }
+
+    .totals {
+      margin-top: 10px;
+    }
+
+    .text-box textarea {
+      width: 100%;
+      min-height: 180px;
+      resize: vertical;
+      border: 1px solid #cbd5e1;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 16px;
+      line-height: 1.45;
+      font-family: Arial, sans-serif;
+      background: #fff;
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .sticky-bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 20;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      background: rgba(243, 246, 251, 0.94);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(217, 227, 240, 0.9);
+    }
+
+    .sticky-inner {
+      width: 100%;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .empty-note {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+      padding: 16px 8px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .role-badge {
+      display: inline-block;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .settings-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .settings-service {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fbfdff;
+    }
+
+    .percent-row,
+    .category-row {
+      display: grid;
+      grid-template-columns: 1fr 120px auto;
+      gap: 8px;
+      margin-bottom: 8px;
+      align-items: center;
+    }
+
+    .percent-row:last-child,
+    .category-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .small-btn {
+      min-height: 44px;
+      font-size: 14px;
+      padding: 10px 12px;
+    }
+
+    .login-box {
+      max-width: 480px;
+      margin: 40px auto;
+    }
+
+    .login-actions {
+      margin-top: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 520px) {
+      .percent-row,
+      .category-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (min-width: 700px) {
+      body {
+        padding: 18px;
+        padding-bottom: 110px;
+      }
+
+      .actions {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .result-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
     }
   </style>
 </head>
 <body>
-  <div id="toastWrap" class="toast-wrap"></div>
-  <div id="loginScreen" class="login-wrap">
-    <div class="login-card">
-      <h1>Вход в систему</h1>
-      <p>Локальное приложение для расчёта прибыли и закупа товаров по 3 сервисам.</p>
-      <div id="authError" class="auth-error hidden"></div>
-      <div class="field"><label for="loginInput">Логин</label><input id="loginInput" class="input" type="text" autocomplete="username" /></div>
-      <div class="field"><label for="passwordInput">Пароль</label><input id="passwordInput" class="input" type="password" autocomplete="current-password" /></div>
-      <button id="loginBtn" class="btn btn-primary" style="width:100%;">Войти</button>
+  <div id="loginScreen" class="login-box">
+    <div class="card">
+      <h1>Вход</h1>
+      <p class="sub">Введите логин и пароль</p>
+
+      <div class="grid" style="margin-top:12px;">
+        <div class="input-block">
+          <label for="loginInput">Логин</label>
+          <input id="loginInput" type="text" placeholder="Введите логин" />
+        </div>
+
+        <div class="input-block">
+          <label for="passwordInput">Пароль</label>
+          <input id="passwordInput" type="password" placeholder="Введите пароль" />
+        </div>
+      </div>
+
+      <div class="login-actions">
+        <button class="primary" id="loginBtn" type="button">Войти</button>
+      </div>
+
+      <div class="status" id="loginStatus"></div>
     </div>
   </div>
+
   <div id="appScreen" class="hidden">
-    <div class="app-shell">
-      <div class="topbar">
-        <div>
-          <div class="topbar-title">Распределение прибыли по сервисам</div>
-          <div class="topbar-sub" id="userInfo"></div>
-        </div>
-        <div class="topbar-actions">
-          <button id="settingsBtn" class="btn btn-light hidden">Настройки</button>
-          <button id="resetFilesBtn" class="btn btn-muted">Сбросить файлы</button>
-          <button id="logoutBtn" class="btn btn-danger">Выйти</button>
+    <div class="wrap">
+      <div class="card">
+        <div class="topbar">
+          <div>
+            <h1>Распределение по процентам</h1>
+            <p class="sub">Впиши суммы, нажми «Рассчитать», потом скопируй готовый текст.</p>
+          </div>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <span class="role-badge" id="roleBadge"></span>
+            <button class="ghost small-btn" id="settingsBtn" type="button">Настройки</button>
+            <button class="ghost small-btn" id="logoutBtn" type="button">Выйти</button>
+          </div>
         </div>
       </div>
-      <div id="servicesGrid" class="grid"></div>
-      <div class="actions-bar">
-        <button id="calculateBtn" class="btn btn-primary">Рассчитать</button>
-        <button id="copyBtn" class="btn btn-success" disabled>Скопировать итог</button>
+
+      <div id="settingsCard" class="card hidden">
+        <h3>Настройки</h3>
+        <div class="settings-grid" id="settingsContent"></div>
+        <div class="actions">
+          <button class="primary" id="saveSettingsBtn" type="button">Сохранить настройки</button>
+          <button class="ghost" id="addCategoryBtn" type="button">Добавить категорию</button>
+        </div>
+        <div class="hint">Удалять можно только добавленные категории. Базовые категории защищены.</div>
+        <div class="status" id="settingsStatus"></div>
       </div>
-      <div id="resultsSection">
-        <div id="resultsContainer" class="whats-next">Заполните данные по всем сервисам (Excel или вручную) и нажмите «Рассчитать».</div>
+
+      <div class="card">
+        <div class="grid">
+          <div class="input-block">
+            <label for="mobileAngel">Мобильный ангел</label>
+            <input id="mobileAngel" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Например 20000" />
+          </div>
+
+          <div class="input-block">
+            <label for="nova">Нова</label>
+            <input id="nova" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Например 30000" />
+          </div>
+
+          <div class="input-block">
+            <label for="tlabs">Т-лабс</label>
+            <input id="tlabs" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Например 40000" />
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="ghost" id="copyBtn" type="button">Скопировать текст</button>
+          <button class="ghost" id="clearBtn" type="button">Очистить</button>
+        </div>
+        <div class="status" id="status"></div>
+      </div>
+
+      <div class="card">
+        <h3>Результат</h3>
+        <div class="result-grid" id="resultGrid">
+          <div class="empty-note">Пока пусто. Нажми «Рассчитать» внизу экрана.</div>
+        </div>
+        <div class="totals" id="totals"></div>
+      </div>
+
+      <div class="card text-box">
+        <h3>Текст для WhatsApp</h3>
+        <textarea id="output" readonly placeholder="После расчёта здесь появится готовый текст"></textarea>
+        <div class="hint">Если автоматическое копирование не сработает, текст можно выделить вручную.</div>
+      </div>
+    </div>
+
+    <div class="sticky-bar">
+      <div class="sticky-inner">
+        <button class="primary" id="calcBtn" type="button">Рассчитать</button>
       </div>
     </div>
   </div>
-  <div id="settingsModal" class="modal-backdrop hidden">
-    <div class="modal">
-      <div class="modal-header">
-        <div>
-          <h3>Настройки процентов</h3>
-          <div class="muted">Только для руководителя. Себестоимость товаров из отчётов автоматически добавляется к строке «Закуп аксессуаров» при расчёте.</div>
-        </div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button id="restoreDefaultBtn" class="btn btn-muted">Сбросить на стандартные</button>
-          <button id="saveSettingsBtn" class="btn btn-primary">Сохранить</button>
-          <button id="closeSettingsBtn" class="btn btn-danger">Закрыть</button>
-        </div>
-      </div>
-      <div id="settingsGrid" class="settings-grid"></div>
-    </div>
-  </div>
+
   <script>
-    const USERS = [
-      { login: 'admin', password: 'admin', role: 'admin', title: 'Администратор' },
-      { login: '560676', password: '560676', role: 'manager', title: 'Руководитель' }
-    ];
-    const SERVICE_KEYS = ['mobile', 'nova', 'tlabs'];
-    const SERVICE_LABELS = { mobile: 'Мобильный ангел', nova: 'Нова', tlabs: 'Т-лабс' };
-    const ERR_MANUAL_FIELDS = 'Заполните все поля';
-    const DEFAULT_SETTINGS = {
-      mobile: [
-        { name: 'Юрий', percent: 25 }, { name: 'Алекс', percent: 25 }, { name: 'Эрика', percent: 9 },
-        { name: 'Аренда', percent: 14 }, { name: 'Смм', percent: 4 }, { name: 'Развитие', percent: 1 },
-        { name: 'Фонд', percent: 1 }, { name: 'Реклама', percent: 1 }, { name: 'Закуп аксессуаров', percent: 1 },
-        { name: 'Закуп телефонов', percent: 1 }, { name: 'Оклад', percent: 18 }
-      ],
-      nova: [
-        { name: 'Юрий', percent: 69 }, { name: 'Алекс', percent: 7 }, { name: 'Эрика', percent: 9 },
-        { name: 'Аренда', percent: 10 }, { name: 'Смм', percent: 0 }, { name: 'Развитие', percent: 1 },
-        { name: 'Фонд', percent: 1 }, { name: 'Реклама', percent: 1 }, { name: 'Закуп аксессуаров', percent: 1 },
-        { name: 'Закуп телефонов', percent: 1 }, { name: 'Оклад', percent: 0 }
-      ],
-      tlabs: [
-        { name: 'Юрий', percent: 20 }, { name: 'Алекс', percent: 20 }, { name: 'Эрика', percent: 9 },
-        { name: 'Аренда', percent: 40 }, { name: 'Смм', percent: 0 }, { name: 'Развитие', percent: 1 },
-        { name: 'Фонд', percent: 7 }, { name: 'Реклама', percent: 1 }, { name: 'Закуп аксессуаров', percent: 1 },
-        { name: 'Закуп телефонов', percent: 1 }, { name: 'Оклад', percent: 0 }
-      ]
+    const STORAGE_KEYS = {
+      auth: 'calc_auth_role',
+      percentages: 'calc_percentages_v2'
     };
-    const STORAGE_KEYS = { settings: 'profit_distribution_settings_v1', session: 'profit_distribution_session_v1' };
-    const appState = { currentUser: null, settings: null, services: createInitialServicesState(), results: null, settingsDraft: null };
 
-    function createInitialServicesState() { return { mobile: createServiceState(), nova: createServiceState(), tlabs: createServiceState() }; }
-    function createManualFieldsState() {
-      return { 'orders-profit': '', 'orders-cost': '', 'sales-profit': '', 'sales-cost': '' };
-    }
-    function createServiceState() {
-      return { mode: 'file', manual: createManualFieldsState(), orders: createFileState(), sales: createFileState() };
-    }
-    function createFileState() { return { fileName: '', status: 'empty', error: '', data: null }; }
+    const USERS = {
+      admin: { login: 'admin', password: 'admin', role: 'admin', title: 'Администратор' },
+      owner: { login: '560676', password: '560676', role: 'owner', title: 'Владелец' }
+    };
 
-    function ensureServiceShape(serviceKey) {
-      const s = appState.services[serviceKey];
-      if (!s) return;
-      s.mode = s.mode === 'manual' ? 'manual' : 'file';
-      if (!s.manual || typeof s.manual !== 'object') {
-        s.manual = createManualFieldsState();
+    const BASE_PERSON_KEYS = ['Юрий', 'Алекс', 'Эрика'];
+    const DEFAULT_STRUCTURE = {
+      mobileAngel: {
+        title: 'Мобильный ангел',
+        items: {
+          'Юрий': 25,
+          'Алекс': 25,
+          'Эрика': 9,
+          'Аренда': 14,
+          'Смм': 4,
+          'Развитие': 1,
+          'Фонд': 1,
+          'Реклама': 1,
+          'Закуп аксессуаров': 1,
+          'Закуп телефонов': 1,
+          'Оклад': 18
+        }
+      },
+      nova: {
+        title: 'Нова',
+        items: {
+          'Юрий': 69,
+          'Алекс': 7,
+          'Эрика': 9,
+          'Аренда': 10,
+          'Смм': 0,
+          'Развитие': 1,
+          'Фонд': 1,
+          'Реклама': 1,
+          'Закуп аксессуаров': 1,
+          'Закуп телефонов': 1,
+          'Оклад': 0
+        }
+      },
+      tlabs: {
+        title: 'Т-лабс',
+        items: {
+          'Юрий': 20,
+          'Алекс': 20,
+          'Эрика': 9,
+          'Аренда': 40,
+          'Смм': 0,
+          'Развитие': 1,
+          'Фонд': 7,
+          'Реклама': 1,
+          'Закуп аксессуаров': 1,
+          'Закуп телефонов': 1,
+          'Оклад': 0
+        }
+      }
+    };
+
+    let PERCENTAGES = loadPercentages();
+    let currentRole = null;
+
+    const els = {
+      loginScreen: document.getElementById('loginScreen'),
+      appScreen: document.getElementById('appScreen'),
+      loginInput: document.getElementById('loginInput'),
+      passwordInput: document.getElementById('passwordInput'),
+      loginBtn: document.getElementById('loginBtn'),
+      loginStatus: document.getElementById('loginStatus'),
+      roleBadge: document.getElementById('roleBadge'),
+      settingsBtn: document.getElementById('settingsBtn'),
+      logoutBtn: document.getElementById('logoutBtn'),
+      settingsCard: document.getElementById('settingsCard'),
+      settingsContent: document.getElementById('settingsContent'),
+      saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+      addCategoryBtn: document.getElementById('addCategoryBtn'),
+      settingsStatus: document.getElementById('settingsStatus'),
+      mobileAngel: document.getElementById('mobileAngel'),
+      nova: document.getElementById('nova'),
+      tlabs: document.getElementById('tlabs'),
+      calcBtn: document.getElementById('calcBtn'),
+      copyBtn: document.getElementById('copyBtn'),
+      clearBtn: document.getElementById('clearBtn'),
+      output: document.getElementById('output'),
+      resultGrid: document.getElementById('resultGrid'),
+      totals: document.getElementById('totals'),
+      status: document.getElementById('status')
+    };
+
+    function deepClone(obj) {
+      return JSON.parse(JSON.stringify(obj));
+    }
+
+    function loadPercentages() {
+      const saved = localStorage.getItem(STORAGE_KEYS.percentages);
+      if (!saved) return deepClone(DEFAULT_STRUCTURE);
+
+      try {
+        const parsed = JSON.parse(saved);
+        if (!parsed || typeof parsed !== 'object') return deepClone(DEFAULT_STRUCTURE);
+        return parsed;
+      } catch {
+        return deepClone(DEFAULT_STRUCTURE);
+      }
+    }
+
+    function savePercentages() {
+      localStorage.setItem(STORAGE_KEYS.percentages, JSON.stringify(PERCENTAGES));
+    }
+
+    function toNumber(value) {
+      if (value === '' || value === null || value === undefined) return 0;
+      return Number(String(value).replace(',', '.')) || 0;
+    }
+
+    function formatMoney(num) {
+      return new Intl.NumberFormat('ru-RU', {
+        minimumFractionDigits: Number.isInteger(num) ? 0 : 2,
+        maximumFractionDigits: 2,
+      }).format(num);
+    }
+
+    function getPersonKeys() {
+      return BASE_PERSON_KEYS.filter(name => {
+        return Object.values(PERCENTAGES).some(service => service.items[name] !== undefined);
+      });
+    }
+
+    function calcService(sum, config) {
+      const result = {};
+      for (const [name, percent] of Object.entries(config.items)) {
+        result[name] = +(sum * percent / 100).toFixed(2);
+      }
+      return result;
+    }
+
+    function renderService(title, inputSum, data) {
+      const rows = Object.entries(data)
+        .map(([name, value]) => `<div class="row"><span>${escapeHtml(name)}</span><strong>${formatMoney(value)}</strong></div>`)
+        .join('');
+
+      return `
+        <div class="service-box">
+          <div class="service-title">
+            <h3>${escapeHtml(title)}</h3>
+            <span class="badge">${formatMoney(inputSum)}</span>
+          </div>
+          ${rows}
+        </div>
+      `;
+    }
+
+    function buildWhatsappText(allResults) {
+      const sections = [];
+
+      for (const [key, result] of Object.entries(allResults.services)) {
+        sections.push(`📊 ${PERCENTAGES[key].title} (${formatMoney(allResults.inputs[key])})`);
+        for (const [name, value] of Object.entries(result)) {
+          sections.push(`${name} — ${formatMoney(value)}`);
+        }
+        sections.push('');
+      }
+
+      sections.push('📌 ИТОГ');
+      for (const [name, value] of Object.entries(allResults.personTotals)) {
+        sections.push(`${name} — ${formatMoney(value)}`);
+      }
+
+      return sections.join('\n');
+    }
+
+    function calculate() {
+      const inputs = {
+        mobileAngel: toNumber(els.mobileAngel.value),
+        nova: toNumber(els.nova.value),
+        tlabs: toNumber(els.tlabs.value),
+      };
+
+      const services = {
+        mobileAngel: calcService(inputs.mobileAngel, PERCENTAGES.mobileAngel),
+        nova: calcService(inputs.nova, PERCENTAGES.nova),
+        tlabs: calcService(inputs.tlabs, PERCENTAGES.tlabs),
+      };
+
+      const personKeys = getPersonKeys();
+      const personTotals = {};
+
+      personKeys.forEach(name => {
+        personTotals[name] = 0;
+      });
+
+      for (const service of Object.values(services)) {
+        for (const person of personKeys) {
+          personTotals[person] += service[person] || 0;
+        }
+      }
+
+      for (const key of Object.keys(personTotals)) {
+        personTotals[key] = +personTotals[key].toFixed(2);
+      }
+
+      els.resultGrid.innerHTML = Object.entries(services)
+        .map(([key, data]) => renderService(PERCENTAGES[key].title, inputs[key], data))
+        .join('');
+
+      els.totals.innerHTML = `
+        <div class="service-box">
+          <h3>Итог по людям</h3>
+          ${Object.entries(personTotals)
+            .map(([name, value]) => `<div class="row"><span>${escapeHtml(name)}</span><strong>${formatMoney(value)}</strong></div>`)
+            .join('')}
+        </div>
+      `;
+
+      els.output.value = buildWhatsappText({ inputs, services, personTotals });
+      els.status.textContent = 'Готово.';
+      els.status.style.color = 'var(--ok)';
+    }
+
+    async function copyText() {
+      const text = els.output.value.trim();
+      if (!text) {
+        els.status.textContent = 'Сначала нажми «Рассчитать».';
+        els.status.style.color = 'var(--danger)';
         return;
       }
-      const defaults = createManualFieldsState();
-      for (const k of Object.keys(defaults)) {
-        if (s.manual[k] == null || s.manual[k] === undefined) s.manual[k] = '';
-        else s.manual[k] = String(s.manual[k]);
-      }
-    }
-    function deepClone(value) { return JSON.parse(JSON.stringify(value)); }
-    function formatMoney(value) { const num = Number(value || 0); return num.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽'; }
-    function normalizeText(value) { return String(value ?? '').replace(/\s+/g, ' ').trim().toLowerCase(); }
-    function normalizeFileName(name) { return normalizeText(name).replace(/ё/g, 'е'); }
-    function parseNumber(raw) {
-      if (raw === null || raw === undefined || raw === '') return NaN;
-      if (typeof raw === 'number') return raw;
-      let str = String(raw).replace(/\u00a0/g, ' ').replace(/\s/g, '').replace(/₽/g, '').replace(/,/g, '.').replace(/[^\d.-]/g, '');
-      if (!str || str === '-' || str === '.') return NaN;
-      return Number(str);
-    }
-    function showToast(message, type = 'info') {
-      const wrap = document.getElementById('toastWrap');
-      const item = document.createElement('div');
-      item.className = `toast ${type}`;
-      item.textContent = message;
-      wrap.appendChild(item);
-      setTimeout(() => {
-        item.style.opacity = '0';
-        item.style.transform = 'translateY(-4px)';
-        setTimeout(() => item.remove(), 250);
-      }, 3200);
-    }
-    function escapeHtml(str) {
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-    }
 
-    function loadSettings() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEYS.settings);
-        if (!raw) {
-          localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(DEFAULT_SETTINGS));
-          return deepClone(DEFAULT_SETTINGS);
-        }
-        const parsed = JSON.parse(raw);
-        if (!isValidSettingsShape(parsed)) throw new Error('Неверная структура настроек');
-        return parsed;
-      } catch (e) {
-        localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(DEFAULT_SETTINGS));
-        showToast('Настройки повреждены. Восстановлены стандартные.', 'error');
-        return deepClone(DEFAULT_SETTINGS);
+        await navigator.clipboard.writeText(text);
+        els.status.textContent = 'Текст скопирован.';
+        els.status.style.color = 'var(--ok)';
+      } catch (error) {
+        els.output.focus();
+        els.output.select();
+        els.status.textContent = 'Автокопирование не сработало. Текст выделен.';
+        els.status.style.color = 'var(--danger)';
       }
     }
-    function saveSettings(settings) { localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings)); }
-    function isValidSettingsShape(settings) {
-      if (!settings || typeof settings !== 'object') return false;
-      for (const key of SERVICE_KEYS) {
-        if (!Array.isArray(settings[key])) return false;
-        for (const item of settings[key]) {
-          if (!item || typeof item.name !== 'string') return false;
-          if (typeof item.percent !== 'number') return false;
-        }
-      }
-      return true;
-    }
-    function saveSession(user) { sessionStorage.setItem(STORAGE_KEYS.session, JSON.stringify(user)); }
-    function loadSession() {
-      try {
-        const raw = sessionStorage.getItem(STORAGE_KEYS.session);
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (!parsed || !parsed.login || !parsed.role) return null;
-        return parsed;
-      } catch { return null; }
-    }
-    function clearSession() { sessionStorage.removeItem(STORAGE_KEYS.session); }
-    function authenticate(login, password) { return USERS.find(u => u.login === login && u.password === password) || null; }
 
-    async function readExcelFile(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = evt => {
-          try {
-            const data = evt.target.result;
-            const workbook = XLSX.read(data, { type: 'array' });
-            if (!workbook.SheetNames.length) return reject(new Error('Excel пустой'));
-            const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: '' });
-            resolve(rows);
-          } catch (err) { reject(new Error('Не удалось прочитать Excel')); }
-        };
-        reader.onerror = () => reject(new Error('Ошибка чтения файла'));
-        reader.readAsArrayBuffer(file);
-      });
-    }
-    function validateFileNameByType(fileName, expectedType) {
-      const name = normalizeFileName(fileName);
-      if (expectedType === 'orders') return name.includes('заказ');
-      if (expectedType === 'sales') return name.includes('продаж');
-      return false;
+    function clearAll() {
+      els.mobileAngel.value = '';
+      els.nova.value = '';
+      els.tlabs.value = '';
+      els.output.value = '';
+      els.resultGrid.innerHTML = '<div class="empty-note">Пока пусто. Нажми «Рассчитать» внизу экрана.</div>';
+      els.totals.innerHTML = '';
+      els.status.textContent = '';
+      els.mobileAngel.focus();
     }
 
-    function parseHelloClientReport(rows) {
-      if (!Array.isArray(rows) || rows.length < 2) {
-        throw new Error('Файл пустой или нет данных');
-      }
+    function login() {
+      const login = els.loginInput.value.trim();
+      const password = els.passwordInput.value.trim();
 
-      const maxScanRows = Math.min(15, rows.length);
-      const normalizeHeader = (v) => String(v || '')
-        .toLowerCase()
-        .replace(/\u00a0/g, ' ')
-        .replace(/ё/g, 'е')
-        .replace(/₽/g, '')
-        .replace(/,/g, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-
-      let headerRowIndex = -1;
-      let profitCol = -1;
-      let goodsCostCol = -1;
-      let bestScore = -1;
-
-      for (let r = 0; r < maxScanRows; r++) {
-        const row = Array.isArray(rows[r]) ? rows[r] : [];
-        const normalized = row.map(normalizeHeader);
-
-        const currentProfitCol = normalized.findIndex(h => h.includes('прибыль') || h.includes('маржа'));
-        const currentGoodsCostCol = normalized.findIndex(h => h.includes('товары себестоимость') || (h.includes('себестоимость') && h.includes('товар')));
-
-        let score = 0;
-        if (currentProfitCol !== -1) score += 1;
-        if (currentGoodsCostCol !== -1) score += 1;
-
-        if (score > bestScore) {
-          bestScore = score;
-          headerRowIndex = r;
-          profitCol = currentProfitCol;
-          goodsCostCol = currentGoodsCostCol;
-        }
-
-        if (score === 2) break;
-      }
-
-      if (profitCol === -1) {
-        throw new Error('Не найдена колонка «Прибыль»');
-      }
-      if (goodsCostCol === -1) {
-        throw new Error('Не найдена колонка «Товары себестоимость»');
-      }
-
-      let profit = 0;
-      let goodsCost = 0;
-      let foundNumbers = false;
-
-      for (let r = headerRowIndex + 1; r < rows.length; r++) {
-        const row = Array.isArray(rows[r]) ? rows[r] : [];
-        const p = parseNumber(row[profitCol]);
-        const c = parseNumber(row[goodsCostCol]);
-
-        if (!Number.isNaN(p)) {
-          profit += p;
-          foundNumbers = true;
-        }
-        if (!Number.isNaN(c)) {
-          goodsCost += c;
-          foundNumbers = true;
-        }
-      }
-
-      if (!foundNumbers) {
-        throw new Error('Не удалось прочитать числовые данные из файла');
-      }
-
-      return { profit, goodsCost };
-    }
-
-    async function processFileUpload(file, expectedType) {
-      if (!file) throw new Error('Файл не выбран');
-      if (!validateFileNameByType(file.name, expectedType)) {
-        if (expectedType === 'orders') throw new Error('Файл не подходит для «Прибыль по заказам»: в имени должно быть «заказ» или «заказы».');
-        throw new Error('Файл не подходит для «Прибыль от продаж»: в имени должно быть «продаж» или «продажи».');
-      }
-      const rows = await readExcelFile(file);
-      let parsed;
-      try {
-        parsed = parseHelloClientReport(rows);
-      } catch (err) {
-        throw new Error(`Ошибка отчёта HelloClient: ${err && err.message ? err.message : 'ошибка разбора'}`);
-      }
-      return { fileName: file.name, parsed };
-    }
-
-    function readManualNumberFromDom(serviceKey) {
-      const root = document.getElementById(`manual-input-${serviceKey}`);
-      if (!root) throw new Error(ERR_MANUAL_FIELDS);
-      const read = (attr) => {
-        const el = root.querySelector(`[data-manual="${attr}"]`);
-        if (!el) throw new Error(ERR_MANUAL_FIELDS);
-        const raw = String(el.value ?? '').trim();
-        if (raw === '') throw new Error(ERR_MANUAL_FIELDS);
-        const n = parseNumber(raw);
-        if (!Number.isFinite(n)) throw new Error(ERR_MANUAL_FIELDS);
-        return n;
-      };
-      return {
-        ordersProfit: read('orders-profit'),
-        ordersCost: read('orders-cost'),
-        salesProfit: read('sales-profit'),
-        salesCost: read('sales-cost')
-      };
-    }
-
-    function calculateAll() {
-      for (const serviceKey of SERVICE_KEYS) {
-        ensureServiceShape(serviceKey);
-        const service = appState.services[serviceKey];
-        if (service.mode === 'manual') {
-          const m = readManualNumberFromDom(serviceKey);
-          service.orders.data = { profit: m.ordersProfit, goodsCost: m.ordersCost };
-          service.sales.data = { profit: m.salesProfit, goodsCost: m.salesCost };
-          service.orders.status = 'ok';
-          service.sales.status = 'ok';
-        }
-      }
-      for (const serviceKey of SERVICE_KEYS) {
-        const service = appState.services[serviceKey];
-        if (!service.orders.data || !service.sales.data) throw new Error(`Для сервиса "${SERVICE_LABELS[serviceKey]}" загружены не все файлы`);
-      }
-      const perService = {};
-      const grandTotal = { 'Юрий': 0, 'Алекс': 0, 'Эрика': 0 };
-      for (const serviceKey of SERVICE_KEYS) {
-        const service = appState.services[serviceKey];
-        const settings = appState.settings[serviceKey];
-        const totalProfit = Number(service.orders.data.profit) + Number(service.sales.data.profit);
-        const goodsCost = Number(service.orders.data.goodsCost) + Number(service.sales.data.goodsCost);
-        if (!Number.isFinite(totalProfit) || !Number.isFinite(goodsCost)) {
-          throw new Error(`Некорректные числа для сервиса "${SERVICE_LABELS[serviceKey]}"`);
-        }
-        const categories = settings.map(item => ({ name: item.name, percent: Number(item.percent), amount: totalProfit * (Number(item.percent) / 100) }));
-        categories.forEach(cat => {
-          if (cat.name.toLowerCase().includes('закуп аксессуар')) {
-            cat.amount += goodsCost;
-          }
-        });
-        const serviceResult = { serviceKey, serviceLabel: SERVICE_LABELS[serviceKey], totalProfit, goodsCost, categories };
-        perService[serviceKey] = serviceResult;
-        for (const category of serviceResult.categories) {
-          if (category.name === 'Юрий' || category.name === 'Алекс' || category.name === 'Эрика') {
-            grandTotal[category.name] += category.amount;
-          }
-        }
-      }
-      return { perService, grandTotal };
-    }
-    function buildWhatsAppText(results) {
-      if (!results) return '';
-
-      const lines = [];
-
-      for (const key of SERVICE_KEYS) {
-        const item = results.perService[key];
-
-        lines.push(`🔹 ${item.serviceLabel}`);
-        lines.push(`Прибыль: ${formatMoney(item.totalProfit)}`);
-        lines.push(`Закуп: ${formatMoney(item.goodsCost)}`);
-        lines.push('');
-
-        item.categories.forEach(cat => {
-          if (cat.name.toLowerCase().includes('закуп товаров')) return;
-
-          lines.push(`${cat.name} — ${formatMoney(cat.amount)}`);
-        });
-
-        lines.push('');
-      }
-
-      lines.push('📊 ОБЩИЙ ИТОГ');
-      lines.push('');
-
-      ['Юрий', 'Алекс', 'Эрика'].forEach(name => {
-        const amount = results.grandTotal[name] || 0;
-        lines.push(`${name} — ${formatMoney(amount)}`);
-      });
-
-      return lines.join('\n');
-    }
-
-    function renderApp() {
-      const hasUser = !!appState.currentUser;
-      document.getElementById('loginScreen').classList.toggle('hidden', hasUser);
-      document.getElementById('appScreen').classList.toggle('hidden', !hasUser);
-      if (!hasUser) return;
-      document.getElementById('userInfo').textContent = `Пользователь: ${appState.currentUser.login} • Роль: ${appState.currentUser.title}`;
-      document.getElementById('settingsBtn').classList.toggle('hidden', appState.currentUser.role !== 'manager');
-      renderServices();
-      renderResults();
-      const copyBtn = document.getElementById('copyBtn');
-      copyBtn.disabled = !appState.results;
-      copyBtn.classList.toggle('copy-btn-hero', !!appState.results);
-    }
-    function renderManualInputs(serviceKey, manual, mode) {
-      const mv = (k) => escapeHtml(manual[k] ?? '');
-      const hidden = mode === 'file' ? ' hidden' : '';
-      return `
-        <div class="manual-input${hidden}" id="manual-input-${serviceKey}">
-          <label class="manual-label">Прибыль по заказам</label>
-          <input type="number" step="any" inputmode="decimal" data-manual="orders-profit" data-service="${serviceKey}" class="manual-field" value="${mv('orders-profit')}" />
-          <label class="manual-label">Себестоимость товаров (заказы)</label>
-          <input type="number" step="any" inputmode="decimal" data-manual="orders-cost" data-service="${serviceKey}" class="manual-field" value="${mv('orders-cost')}" />
-          <label class="manual-label">Прибыль от продаж</label>
-          <input type="number" step="any" inputmode="decimal" data-manual="sales-profit" data-service="${serviceKey}" class="manual-field" value="${mv('sales-profit')}" />
-          <label class="manual-label">Себестоимость товаров (продажи)</label>
-          <input type="number" step="any" inputmode="decimal" data-manual="sales-cost" data-service="${serviceKey}" class="manual-field" value="${mv('sales-cost')}" />
-        </div>`;
-    }
-
-    function renderServices() {
-      const grid = document.getElementById('servicesGrid');
-      grid.innerHTML = '';
-      for (const serviceKey of SERVICE_KEYS) {
-        ensureServiceShape(serviceKey);
-        const serviceState = appState.services[serviceKey];
-        const mode = serviceState.mode === 'manual' ? 'manual' : 'file';
-        const uploadsHidden = mode === 'manual' ? ' hidden' : '';
-        const fileBtnClass = mode === 'file' ? 'btn-primary' : 'btn-muted';
-        const manualBtnClass = mode === 'manual' ? 'btn-primary' : 'btn-muted';
-        const serviceCard = document.createElement('div');
-        serviceCard.className = 'card';
-        serviceCard.innerHTML = `
-          <div class="service-title"><h2>${escapeHtml(SERVICE_LABELS[serviceKey])}</h2></div>
-          <div class="mode-switch">
-            <button type="button" class="btn mode-switch-btn ${fileBtnClass}" data-service="${serviceKey}" data-mode="file">📂 Файл</button>
-            <button type="button" class="btn mode-switch-btn ${manualBtnClass}" data-service="${serviceKey}" data-mode="manual">✍️ Вручную</button>
-          </div>
-          <div class="service-uploads${uploadsHidden}">
-            ${renderUploadBlock(serviceKey, 'orders', 'Загрузить прибыль по заказам', serviceState.orders)}
-            ${renderUploadBlock(serviceKey, 'sales', 'Загрузить прибыль от продаж', serviceState.sales)}
-          </div>
-          ${renderManualInputs(serviceKey, serviceState.manual, mode)}`;
-        grid.appendChild(serviceCard);
-      }
-    }
-    function renderUploadBlock(serviceKey, fileType, label, fileState) {
-      const statusClass = fileState.status === 'ok' ? 'status-ok' : fileState.status === 'error' ? 'status-error' : 'status-empty';
-      const statusText = fileState.status === 'ok' ? 'Загружен' : fileState.status === 'error' ? 'Ошибка' : 'Не загружен';
-      const err = fileState.error ? `<div class="error-box">${escapeHtml(fileState.error)}</div>` : '';
-      return `
-        <div class="upload-block">
-          <div class="upload-row">
-            <label class="btn btn-light" for="file-${serviceKey}-${fileType}">${label}</label>
-            <input id="file-${serviceKey}-${fileType}" class="hidden service-file-input" type="file" data-service="${serviceKey}" data-type="${fileType}" accept=".xls,.xlsx" />
-            <span class="status ${statusClass}">${statusText}</span>
-          </div>
-          <div class="muted" style="font-size:13px;">Файл: ${fileState.fileName ? escapeHtml(fileState.fileName) : 'не выбран'}</div>
-          ${err}
-        </div>`;
-    }
-    function renderResults() {
-      const container = document.getElementById('resultsContainer');
-      if (!appState.results) {
-        container.className = 'whats-next';
-        container.textContent = 'Заполните данные по всем сервисам (Excel или вручную) и нажмите «Рассчитать».';
+      if (login === USERS.admin.login && password === USERS.admin.password) {
+        setAuth('admin');
         return;
       }
-      container.className = 'whats-next whats-next--ready';
-      container.textContent = 'Нажмите «Скопировать итог» и отправьте в WhatsApp.';
+
+      if (login === USERS.owner.login && password === USERS.owner.password) {
+        setAuth('owner');
+        return;
+      }
+
+      els.loginStatus.textContent = 'Неверный логин или пароль.';
+      els.loginStatus.style.color = 'var(--danger)';
     }
-    function renderSettingsModal() {
-      const grid = document.getElementById('settingsGrid');
-      const draft = appState.settingsDraft || deepClone(appState.settings);
-      grid.innerHTML = '';
-      for (const key of SERVICE_KEYS) {
-        const list = draft[key];
-        const sum = list.reduce((acc, item) => acc + Number(item.percent || 0), 0);
-        const sumOk = Math.abs(sum - 100) < 0.0001;
-        const block = document.createElement('div');
-        block.className = 'settings-block';
-        block.innerHTML = `
-          <h4>${escapeHtml(SERVICE_LABELS[key])}</h4>
-          <div id="settings-list-${key}">
-            ${list.map((item, index) => `
-              <div class="row-cat">
-                <input class="small-input settings-name" data-service="${key}" data-index="${index}" type="text" value="${escapeHtml(item.name)}" placeholder="Категория" />
-                <input class="small-input settings-percent" data-service="${key}" data-index="${index}" type="number" step="0.01" value="${item.percent}" placeholder="%" />
-                <button class="icon-btn delete-category-btn" data-service="${key}" data-index="${index}" title="Удалить">✕</button>
-              </div>`).join('')}
+
+    function setAuth(role) {
+      currentRole = role;
+      localStorage.setItem(STORAGE_KEYS.auth, role);
+      els.loginScreen.classList.add('hidden');
+      els.appScreen.classList.remove('hidden');
+      els.loginStatus.textContent = '';
+      els.loginInput.value = '';
+      els.passwordInput.value = '';
+      updateRoleUI();
+    }
+
+    function logout() {
+      currentRole = null;
+      localStorage.removeItem(STORAGE_KEYS.auth);
+      els.appScreen.classList.add('hidden');
+      els.loginScreen.classList.remove('hidden');
+      els.settingsCard.classList.add('hidden');
+    }
+
+    function updateRoleUI() {
+      if (currentRole === 'owner') {
+        els.roleBadge.textContent = 'Владелец';
+        els.settingsBtn.classList.remove('hidden');
+      } else {
+        els.roleBadge.textContent = 'Администратор';
+        els.settingsBtn.classList.add('hidden');
+        els.settingsCard.classList.add('hidden');
+      }
+    }
+
+    function toggleSettings() {
+      if (currentRole !== 'owner') return;
+      els.settingsCard.classList.toggle('hidden');
+      if (!els.settingsCard.classList.contains('hidden')) {
+        renderSettings();
+      }
+    }
+
+    function renderSettings() {
+      const html = Object.entries(PERCENTAGES).map(([serviceKey, service]) => {
+        const rows = Object.entries(service.items).map(([name, percent]) => {
+          const isProtected = BASE_PERSON_KEYS.includes(name) ||
+                              Object.prototype.hasOwnProperty.call(DEFAULT_STRUCTURE[serviceKey].items, name);
+
+          return `
+            <div class="percent-row">
+              <input type="text" value="${escapeAttr(name)}" data-type="name" data-service="${serviceKey}" data-old-name="${escapeAttr(name)}" ${isProtected ? 'readonly' : ''}>
+              <input type="number" step="0.01" value="${percent}" data-type="percent" data-service="${serviceKey}" data-name="${escapeAttr(name)}">
+              ${isProtected
+                ? `<button class="ghost small-btn" type="button" disabled>Базовая</button>`
+                : `<button class="danger small-btn delete-category-btn" type="button" data-service="${serviceKey}" data-name="${escapeAttr(name)}">Удалить</button>`
+              }
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="settings-service">
+            <h3>${escapeHtml(service.title)}</h3>
+            ${rows}
           </div>
-          <button class="btn btn-light add-category-btn" data-service="${key}" style="margin-top:8px;">Добавить категорию</button>
-          <div class="sum-box ${sumOk ? 'sum-ok' : 'sum-bad'}">Сумма процентов: ${sum}%</div>`;
-        grid.appendChild(block);
-      }
-      bindSettingsEvents();
-    }
+        `;
+      }).join('');
 
-    function bindStaticEvents() {
-      document.getElementById('loginBtn').addEventListener('click', onLogin);
-      document.getElementById('passwordInput').addEventListener('keydown', e => { if (e.key === 'Enter') onLogin(); });
-      document.getElementById('loginInput').addEventListener('keydown', e => { if (e.key === 'Enter') onLogin(); });
-      document.getElementById('logoutBtn').addEventListener('click', logout);
-      document.getElementById('calculateBtn').addEventListener('click', onCalculate);
-      document.getElementById('copyBtn').addEventListener('click', onCopy);
-      document.getElementById('resetFilesBtn').addEventListener('click', resetFiles);
-      document.getElementById('settingsBtn').addEventListener('click', openSettings);
-      document.getElementById('closeSettingsBtn').addEventListener('click', closeSettings);
-      document.getElementById('saveSettingsBtn').addEventListener('click', saveSettingsFromModal);
-      document.getElementById('restoreDefaultBtn').addEventListener('click', restoreDefaultSettings);
-    }
-    function bindServicesGridEvents() {
-      const grid = document.getElementById('servicesGrid');
-      if (!grid || grid.dataset.servicesBound === '1') return;
-      grid.dataset.servicesBound = '1';
+      els.settingsContent.innerHTML = html;
 
-      grid.addEventListener('change', e => {
-        const t = e.target;
-        if (t && t.classList && t.classList.contains('service-file-input')) onFileSelected(e);
-      });
-
-      grid.addEventListener('click', e => {
-        const btn = e.target.closest('.mode-switch-btn');
-        if (!btn || !grid.contains(btn)) return;
-        const serviceKey = btn.dataset.service;
-        const next = btn.dataset.mode;
-        if (!serviceKey || (next !== 'file' && next !== 'manual')) return;
-        ensureServiceShape(serviceKey);
-        const svc = appState.services[serviceKey];
-        if (svc.mode === next) return;
-        svc.mode = next;
-        appState.results = null;
-        renderApp();
-      });
-
-      grid.addEventListener('input', e => {
-        const el = e.target;
-        if (!el || !el.classList || !el.classList.contains('manual-field')) return;
-        const serviceKey = el.dataset.service;
-        const key = el.dataset.manual;
-        ensureServiceShape(serviceKey);
-        const svc = appState.services[serviceKey];
-        if (!serviceKey || !key || !svc.manual) return;
-        svc.manual[key] = el.value;
-        appState.results = null;
-        const copyBtn = document.getElementById('copyBtn');
-        if (copyBtn) {
-          copyBtn.disabled = true;
-          copyBtn.classList.remove('copy-btn-hero');
-        }
-        renderResults();
-      });
-    }
-    function bindSettingsEvents() {
-      document.querySelectorAll('.add-category-btn').forEach(btn => btn.addEventListener('click', () => {
-        appState.settingsDraft[btn.dataset.service].push({ name: '', percent: 0 }); renderSettingsModal();
-      }));
-      document.querySelectorAll('.delete-category-btn').forEach(btn => btn.addEventListener('click', () => {
-        appState.settingsDraft[btn.dataset.service].splice(Number(btn.dataset.index), 1); renderSettingsModal();
-      }));
-      document.querySelectorAll('.settings-name').forEach(input => input.addEventListener('input', () => {
-        appState.settingsDraft[input.dataset.service][Number(input.dataset.index)].name = input.value;
-      }));
-      document.querySelectorAll('.settings-percent').forEach(input => input.addEventListener('input', () => {
-        appState.settingsDraft[input.dataset.service][Number(input.dataset.index)].percent = Number(input.value || 0); renderSettingsModal();
-      }));
-    }
-
-    function onLogin() {
-      const login = document.getElementById('loginInput').value.trim();
-      const password = document.getElementById('passwordInput').value.trim();
-      const authError = document.getElementById('authError');
-      const user = authenticate(login, password);
-      if (!user) { authError.textContent = 'Неверный логин или пароль'; authError.classList.remove('hidden'); return; }
-      authError.classList.add('hidden');
-      appState.currentUser = user;
-      saveSession(user);
-      renderApp();
-      showToast(`Вход выполнен: ${user.title}`, 'success');
-    }
-    function logout() { appState.currentUser = null; appState.results = null; clearSession(); renderApp(); showToast('Вы вышли из системы', 'info'); }
-    async function onFileSelected(e) {
-      const input = e.target;
-      const serviceKey = input.dataset.service;
-      const fileType = input.dataset.type;
-      const file = input.files?.[0];
-      if (!file || !serviceKey || !fileType) return;
-      ensureServiceShape(serviceKey);
-      if (appState.services[serviceKey].mode !== 'file') return;
-      const target = appState.services[serviceKey][fileType];
-      const snapshot = { fileName: target.fileName, status: target.status, error: target.error, data: target.data };
-      const prevResults = appState.results;
-      target.fileName = file.name;
-      target.status = 'empty';
-      target.error = '';
-      target.data = null;
-      appState.results = null;
-      renderApp();
-      try {
-        const result = await processFileUpload(file, fileType);
-        target.fileName = result.fileName;
-        target.status = 'ok';
-        target.error = '';
-        target.data = result.parsed;
-        showToast(`Файл принят: ${result.fileName}`, 'success');
-      } catch (err) {
-        const msg = err.message || 'Неизвестная ошибка';
-        if (snapshot.data != null || snapshot.status === 'ok') {
-          target.fileName = snapshot.fileName;
-          target.status = snapshot.status;
-          target.error = snapshot.error;
-          target.data = snapshot.data;
-        } else {
-          target.fileName = '';
-          target.status = 'error';
-          target.error = msg;
-          target.data = null;
-        }
-        appState.results = prevResults;
-        showToast(msg, 'error');
-      }
-      input.value = '';
-      renderApp();
-    }
-    function onCalculate() {
-      try { appState.results = calculateAll(); renderApp(); showToast('Расчёт выполнен', 'success'); }
-      catch (err) { appState.results = null; renderApp(); showToast(err.message || 'Ошибка расчёта', 'error'); }
-    }
-    async function onCopy() {
-      try {
-        if (!appState.results) throw new Error('Сначала выполните расчёт');
-        await navigator.clipboard.writeText(buildWhatsAppText(appState.results));
-        showToast('Скопировано! Вставь в WhatsApp', 'success');
-      } catch (err) { showToast(err.message || 'Не удалось скопировать текст', 'error'); }
-    }
-    function resetFiles() { appState.services = createInitialServicesState(); appState.results = null; renderApp(); showToast('Файлы сброшены', 'info'); }
-    function openSettings() {
-      if (!appState.currentUser || appState.currentUser.role !== 'manager') return;
-      appState.settingsDraft = deepClone(appState.settings);
-      document.getElementById('settingsModal').classList.remove('hidden');
-      renderSettingsModal();
-    }
-    function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); appState.settingsDraft = null; }
-    function restoreDefaultSettings() { appState.settingsDraft = deepClone(DEFAULT_SETTINGS); renderSettingsModal(); showToast('Черновик настроек сброшен на стандартные значения', 'info'); }
-    function saveSettingsFromModal() {
-      try {
-        const clean = sanitizeSettingsDraft(appState.settingsDraft);
-        for (const key of SERVICE_KEYS) {
-          const sum = clean[key].reduce((acc, item) => acc + item.percent, 0);
-          if (Math.abs(sum - 100) > 0.0001) throw new Error(`Сумма процентов для "${SERVICE_LABELS[key]}" должна быть 100%`);
-        }
-        appState.settings = clean;
-        saveSettings(clean);
-        appState.results = null;
-        closeSettings();
-        renderApp();
-        showToast('Настройки сохранены', 'success');
-      } catch (err) { showToast(err.message || 'Ошибка сохранения настроек', 'error'); }
-    }
-    function sanitizeSettingsDraft(draft) {
-      const output = {};
-      for (const key of SERVICE_KEYS) {
-        if (!Array.isArray(draft[key])) throw new Error(`Нет списка категорий для "${SERVICE_LABELS[key]}"`);
-        output[key] = draft[key].map((item, index) => {
-          const name = String(item.name || '').trim();
-          const percent = Number(item.percent);
-          if (!name) throw new Error(`Пустое название категории в "${SERVICE_LABELS[key]}", строка ${index + 1}`);
-          if (!Number.isFinite(percent) || percent < 0) throw new Error(`Неверный процент в "${SERVICE_LABELS[key]}", категория "${name}"`);
-          if (normalizeText(name) === 'закуп товаров') throw new Error('Категорию "Закуп товаров" нельзя добавлять или редактировать в процентах');
-          return { name, percent };
+      document.querySelectorAll('.delete-category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const service = btn.dataset.service;
+          const name = btn.dataset.name;
+          delete PERCENTAGES[service].items[name];
+          renderSettings();
         });
+      });
+    }
+
+    function saveSettings() {
+      if (currentRole !== 'owner') return;
+
+      const newStructure = deepClone(PERCENTAGES);
+
+      document.querySelectorAll('#settingsContent .percent-row').forEach(row => {
+        const nameInput = row.querySelector('[data-type="name"]');
+        const percentInput = row.querySelector('[data-type="percent"]');
+
+        const serviceKey = nameInput.dataset.service;
+        const oldName = nameInput.dataset.oldName;
+        const newName = nameInput.value.trim();
+        const newPercent = toNumber(percentInput.value);
+
+        if (!newName) return;
+
+        if (oldName !== newName) {
+          delete newStructure[serviceKey].items[oldName];
+        }
+
+        newStructure[serviceKey].items[newName] = newPercent;
+      });
+
+      PERCENTAGES = newStructure;
+      savePercentages();
+      els.settingsStatus.textContent = 'Настройки сохранены.';
+      els.settingsStatus.style.color = 'var(--ok)';
+      calculate();
+      renderSettings();
+    }
+
+    function addCategory() {
+      if (currentRole !== 'owner') return;
+
+      const serviceKey = prompt('Куда добавить категорию? Введи: mobileAngel, nova или tlabs');
+      if (!serviceKey || !PERCENTAGES[serviceKey]) {
+        els.settingsStatus.textContent = 'Неверный сервис.';
+        els.settingsStatus.style.color = 'var(--danger)';
+        return;
       }
-      return output;
+
+      const categoryName = prompt('Название новой категории');
+      if (!categoryName || !categoryName.trim()) {
+        els.settingsStatus.textContent = 'Название пустое.';
+        els.settingsStatus.style.color = 'var(--danger)';
+        return;
+      }
+
+      if (PERCENTAGES[serviceKey].items[categoryName.trim()] !== undefined) {
+        els.settingsStatus.textContent = 'Такая категория уже есть.';
+        els.settingsStatus.style.color = 'var(--danger)';
+        return;
+      }
+
+      const percentValue = prompt('Процент для новой категории', '0');
+      PERCENTAGES[serviceKey].items[categoryName.trim()] = toNumber(percentValue);
+
+      renderSettings();
+      els.settingsStatus.textContent = 'Категория добавлена. Теперь нажми "Сохранить настройки".';
+      els.settingsStatus.style.color = 'var(--ok)';
     }
-    function init() {
-      appState.settings = loadSettings();
-      const savedUser = loadSession();
-      if (savedUser) appState.currentUser = USERS.find(u => u.login === savedUser.login && u.role === savedUser.role) || null;
-      bindStaticEvents();
-      bindServicesGridEvents();
-      renderApp();
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
     }
-    init();
+
+    function escapeAttr(value) {
+      return escapeHtml(value);
+    }
+
+    function boot() {
+      const savedRole = localStorage.getItem(STORAGE_KEYS.auth);
+      if (savedRole === 'admin' || savedRole === 'owner') {
+        setAuth(savedRole);
+      } else {
+        els.loginScreen.classList.remove('hidden');
+        els.appScreen.classList.add('hidden');
+      }
+    }
+
+    els.loginBtn.addEventListener('click', login);
+    els.passwordInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') login();
+    });
+    els.loginInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') login();
+    });
+
+    els.settingsBtn.addEventListener('click', toggleSettings);
+    els.saveSettingsBtn.addEventListener('click', saveSettings);
+    els.addCategoryBtn.addEventListener('click', addCategory);
+    els.logoutBtn.addEventListener('click', logout);
+
+    els.calcBtn.addEventListener('click', calculate);
+    els.copyBtn.addEventListener('click', copyText);
+    els.clearBtn.addEventListener('click', clearAll);
+
+    [els.mobileAngel, els.nova, els.tlabs].forEach(input => {
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') calculate();
+      });
+    });
+
+    boot();
   </script>
 </body>
 </html>
