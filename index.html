@@ -309,6 +309,21 @@
       margin-bottom: 0;
     }
 
+    .add-category-row {
+      display: grid;
+      grid-template-columns: 1fr 100px auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .add-category-row input {
+      min-height: 44px;
+    }
+
+    .add-category-row button {
+      min-height: 44px;
+    }
+
     .small-btn {
       min-height: 44px;
       font-size: 14px;
@@ -333,7 +348,8 @@
 
     @media (max-width: 520px) {
       .percent-row,
-      .category-row {
+      .category-row,
+      .add-category-row {
         grid-template-columns: 1fr;
       }
     }
@@ -401,7 +417,6 @@
         <div class="settings-grid" id="settingsContent"></div>
         <div class="actions">
           <button class="primary" id="saveSettingsBtn" type="button">Сохранить настройки</button>
-          <button class="ghost" id="addCategoryBtn" type="button">Добавить категорию</button>
         </div>
         <div class="hint">Удалять можно только добавленные категории. Базовые категории защищены.</div>
         <div class="status" id="settingsStatus"></div>
@@ -533,7 +548,6 @@
       settingsCard: document.getElementById('settingsCard'),
       settingsContent: document.getElementById('settingsContent'),
       saveSettingsBtn: document.getElementById('saveSettingsBtn'),
-      addCategoryBtn: document.getElementById('addCategoryBtn'),
       settingsStatus: document.getElementById('settingsStatus'),
       mobileAngel: document.getElementById('mobileAngel'),
       nova: document.getElementById('nova'),
@@ -786,6 +800,11 @@
           <div class="settings-service">
             <h3>${escapeHtml(service.title)}</h3>
             ${rows}
+            <div class="add-category-row">
+              <input type="text" placeholder="Название категории" data-add-name="${escapeAttr(serviceKey)}">
+              <input type="number" placeholder="%" data-add-percent="${escapeAttr(serviceKey)}">
+              <button type="button" data-add-btn="${escapeAttr(serviceKey)}">Добавить</button>
+            </div>
           </div>
         `;
       }).join('');
@@ -833,35 +852,52 @@
       renderSettings();
     }
 
-    function addCategory() {
+    function handleAddCategoryClick(e) {
+      const btn = e.target.closest('[data-add-btn]');
+      if (!btn || !els.settingsContent.contains(btn)) return;
       if (currentRole !== 'owner') return;
 
-      const serviceKey = prompt('Куда добавить категорию? Введи: mobileAngel, nova или tlabs');
-      if (!serviceKey || !PERCENTAGES[serviceKey]) {
-        els.settingsStatus.textContent = 'Неверный сервис.';
+      const serviceKey = btn.getAttribute('data-add-btn');
+      if (!serviceKey || !PERCENTAGES[serviceKey]) return;
+
+      const row = btn.closest('.add-category-row');
+      if (!row) return;
+
+      const nameInput = row.querySelector('[data-add-name]');
+      const percentInput = row.querySelector('[data-add-percent]');
+      if (!nameInput || !percentInput) return;
+
+      const newName = nameInput.value.trim();
+      if (!newName) {
+        els.settingsStatus.textContent = 'Введите название категории.';
         els.settingsStatus.style.color = 'var(--danger)';
         return;
       }
 
-      const categoryName = prompt('Название новой категории');
-      if (!categoryName || !categoryName.trim()) {
-        els.settingsStatus.textContent = 'Название пустое.';
+      const percentStr = String(percentInput.value).trim().replace(',', '.');
+      if (percentStr === '') {
+        els.settingsStatus.textContent = 'Укажите процент.';
         els.settingsStatus.style.color = 'var(--danger)';
         return;
       }
 
-      if (PERCENTAGES[serviceKey].items[categoryName.trim()] !== undefined) {
-        els.settingsStatus.textContent = 'Такая категория уже есть.';
+      const percent = Number(percentStr);
+      if (!Number.isFinite(percent)) {
+        els.settingsStatus.textContent = 'Процент должен быть числом.';
         els.settingsStatus.style.color = 'var(--danger)';
         return;
       }
 
-      const percentValue = prompt('Процент для новой категории', '0');
-      PERCENTAGES[serviceKey].items[categoryName.trim()] = toNumber(percentValue);
+      if (PERCENTAGES[serviceKey].items[newName] !== undefined) {
+        els.settingsStatus.textContent = 'Категория с таким именем уже есть.';
+        els.settingsStatus.style.color = 'var(--danger)';
+        return;
+      }
 
-      renderSettings();
-      els.settingsStatus.textContent = 'Категория добавлена. Теперь нажми "Сохранить настройки".';
+      PERCENTAGES[serviceKey].items[newName] = percent;
+      els.settingsStatus.textContent = 'Категория добавлена. Нажмите «Сохранить настройки».';
       els.settingsStatus.style.color = 'var(--ok)';
+      renderSettings();
     }
 
     function escapeHtml(value) {
@@ -897,7 +933,7 @@
 
     els.settingsBtn.addEventListener('click', toggleSettings);
     els.saveSettingsBtn.addEventListener('click', saveSettings);
-    els.addCategoryBtn.addEventListener('click', addCategory);
+    els.settingsContent.addEventListener('click', handleAddCategoryClick);
     els.logoutBtn.addEventListener('click', logout);
 
     els.calcBtn.addEventListener('click', calculate);
