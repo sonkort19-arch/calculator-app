@@ -20,10 +20,11 @@
       --shadow:0 10px 30px rgba(15,23,42,.08);
       --radius:18px;
     }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{height:100%;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+    body{margin:0;position:relative;overscroll-behavior:none;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--text)}
     .hidden{display:none!important}
-    .app-shell{max-width:1400px;margin:0 auto;padding:20px}
+    .app-shell{width:100%;max-width:100%;padding:12px;margin:0 auto}
     .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;padding:16px 18px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);flex-wrap:wrap}
     .topbar-title{font-size:20px;font-weight:700}.topbar-sub{font-size:13px;color:var(--muted);margin-top:4px}.topbar-actions{display:flex;gap:10px;flex-wrap:wrap}
     .btn{border:none;border-radius:12px;padding:12px 16px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s ease}.btn:hover{transform:translateY(-1px)}
@@ -56,12 +57,13 @@
     .sum-box{margin-top:10px;padding:10px 12px;border-radius:12px;font-size:14px;font-weight:700;background:#fff;border:1px solid var(--line)}.sum-ok{color:#166534;border-color:#bbf7d0;background:#f0fdf4}.sum-bad{color:#991b1b;border-color:#fecaca;background:#fef2f2}.empty-res{border:1px dashed #cbd5e1;border-radius:16px;padding:18px;color:#64748b;background:#fff}
     @media (max-width:1100px){.grid,.settings-grid{grid-template-columns:1fr}}
     @media (max-width:768px){
-      .app-shell{padding:14px 12px 28px}
-      .topbar{flex-direction:column;align-items:stretch;gap:14px;padding:14px 16px;margin-bottom:14px}
+      .topbar{flex-direction:column;align-items:flex-start;gap:8px;padding:14px 16px;margin-bottom:14px}
       .topbar-actions{display:flex;flex-direction:column;gap:10px;width:100%}
-      .topbar-actions .btn{width:100%;margin-bottom:0}
-      .grid{gap:20px}
-      .card{padding:16px}
+      .btn{width:100%}
+      .topbar-actions .btn{margin-bottom:0}
+      .app-shell{padding:10px}
+      .grid{grid-template-columns:1fr;gap:20px}
+      .card{padding:14px}
       .service-title{margin-bottom:12px}
       .upload-block{padding:12px;margin-bottom:14px}
       .upload-row{flex-direction:column;align-items:stretch;gap:10px;margin-bottom:6px}
@@ -86,7 +88,6 @@
       <div class="field"><label for="loginInput">Логин</label><input id="loginInput" class="input" type="text" autocomplete="username" /></div>
       <div class="field"><label for="passwordInput">Пароль</label><input id="passwordInput" class="input" type="password" autocomplete="current-password" /></div>
       <button id="loginBtn" class="btn btn-primary" style="width:100%;">Войти</button>
-      <div class="hint">Администратор: <b>admin / admin</b><br />Руководитель: <b>560676 / 560676</b></div>
     </div>
   </div>
   <div id="appScreen" class="hidden">
