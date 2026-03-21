@@ -572,7 +572,29 @@
       try {
         const parsed = JSON.parse(saved);
         if (!parsed || typeof parsed !== 'object') return deepClone(DEFAULT_STRUCTURE);
-        return parsed;
+
+        const result = {};
+        for (const key of Object.keys(DEFAULT_STRUCTURE)) {
+          const slot = parsed[key];
+          if (
+            slot &&
+            typeof slot === 'object' &&
+            slot.items &&
+            typeof slot.items === 'object' &&
+            !Array.isArray(slot.items)
+          ) {
+            result[key] = {
+              title:
+                typeof slot.title === 'string' && slot.title.trim()
+                  ? slot.title
+                  : DEFAULT_STRUCTURE[key].title,
+              items: deepClone(slot.items),
+            };
+          } else {
+            result[key] = deepClone(DEFAULT_STRUCTURE[key]);
+          }
+        }
+        return result;
       } catch {
         return deepClone(DEFAULT_STRUCTURE);
       }
@@ -816,6 +838,7 @@
           const service = btn.dataset.service;
           const name = btn.dataset.name;
           delete PERCENTAGES[service].items[name];
+          savePercentages();
           renderSettings();
         });
       });
@@ -895,7 +918,8 @@
       }
 
       PERCENTAGES[serviceKey].items[newName] = percent;
-      els.settingsStatus.textContent = 'Категория добавлена. Нажмите «Сохранить настройки».';
+      savePercentages();
+      els.settingsStatus.textContent = 'Категория добавлена и сохранена.';
       els.settingsStatus.style.color = 'var(--ok)';
       renderSettings();
     }
