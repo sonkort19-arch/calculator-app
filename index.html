@@ -73,6 +73,8 @@
     .check-row { margin-top: 12px; display: flex; gap: 18px; flex-wrap: wrap; }
     .check-item { display: inline-flex; gap: 8px; align-items: center; color: var(--text); font-size: 14px; }
     .check-item input { width: auto; padding: 0; }
+    .mode-row { margin-top: 12px; max-width: 320px; }
+    .mode-hint { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.4; }
 
     .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
     button { border: 0; border-radius: 12px; padding: 12px 16px; font-size: 15px; font-weight: 700; cursor: pointer; transition: .2s ease; }
@@ -160,6 +162,14 @@
         <label class="check-item"><input type="checkbox" id="morningRitual"> Утром зафиксировал 3 приоритета</label>
         <label class="check-item"><input type="checkbox" id="eveningRitual"> Вечером подвёл факт</label>
       </div>
+      <div class="mode-row">
+        <label class="extra-label" for="scoringMode">Режим оценки</label>
+        <select id="scoringMode">
+          <option value="soft">Мягкий (антивыгорание)</option>
+          <option value="hard">Жёсткий (рост дохода)</option>
+        </select>
+        <div class="mode-hint" id="modeHint"></div>
+      </div>
 
       <div class="actions">
         <button class="btn-primary" id="nextBtn">Далее</button>
@@ -235,6 +245,8 @@
       extraFields: document.getElementById("extraFields"),
       morningRitual: document.getElementById("morningRitual"),
       eveningRitual: document.getElementById("eveningRitual"),
+      scoringMode: document.getElementById("scoringMode"),
+      modeHint: document.getElementById("modeHint"),
       nextBtn: document.getElementById("nextBtn"),
       backBtn: document.getElementById("backBtn"),
       resetBtn: document.getElementById("resetBtn"),
@@ -323,6 +335,7 @@
           morningPriorities: false,
           eveningFact: false
         },
+        scoringMode: "hard",
         report: ""
       };
     }
@@ -351,6 +364,50 @@
       if (total >= 150) return "Рост";
       if (total >= 50) return "Стабильность";
       return "Новичок";
+    }
+
+    function getScoringPreset(mode) {
+      if (mode === "soft") {
+        return {
+          doneBase: 7,
+          keyGoalMove: 10,
+          incomeTask: 5,
+          systemTask: 3,
+          fullBusinessBonus: 1,
+          sport: 5,
+          ritualsBonus: 3,
+          missingBusinessPenalty: -3,
+          missWithTransferPenalty: -1,
+          missWithoutTransferPenalty: -4,
+          overloadPenalty: -4,
+          minDay: -12,
+          maxDay: 32,
+          weakTone: "supportive"
+        };
+      }
+      return {
+        doneBase: 8,
+        keyGoalMove: 12,
+        incomeTask: 6,
+        systemTask: 4,
+        fullBusinessBonus: 2,
+        sport: 5,
+        ritualsBonus: 2,
+        missingBusinessPenalty: -5,
+        missWithTransferPenalty: -2,
+        missWithoutTransferPenalty: -5,
+        overloadPenalty: -5,
+        minDay: -15,
+        maxDay: 35,
+        weakTone: "strict"
+      };
+    }
+
+    function getScoringModeHint(mode) {
+      if (mode === "soft") {
+        return "Мягкий режим: ниже штрафы, выше поддержка. Подходит при усталости и восстановлении.";
+      }
+      return "Жесткий режим: выше вес действий на доход и строже штрафы. Подходит для ускорения роста.";
     }
 
     function migrateState(raw) {
@@ -420,10 +477,11 @@
       return { success: success, hasMoney: hasMoney, hasBusiness: hasBusiness, hasHealth: hasHealth };
     }
 
-    function calculateDayPoints(answers, rituals) {
+    function calculateDayPoints(answers, rituals, scoringMode) {
       let points = 0;
       let penalties = 0;
       const reasons = [];
+      const preset = getScoringPreset(scoringMode);
 
       const done = normalizeText(answers.doneYesterday);
       const weekGoal = normalizeText(answers.weekGoal);
@@ -435,45 +493,56 @@
       const overload = answers.overload;
 
       if (isMeaningfulText(done)) {
-        points += 5;
-        points += 3;
-        reasons.push("+8: есть факт работы и дисциплина");
+        points += preset.doneBase;
+        reasons.push("+" + preset.doneBase + ": есть факт работы и базовая дисциплина");
       }
       if (isMeaningfulText(weekGoal) && isMeaningfulText(done)) {
-        points += 10;
-        reasons.push("+10: выполнен вектор ключевой цели");
+        points += preset.keyGoalMove;
+        reasons.push("+" + preset.keyGoalMove + ": есть движение по ключевой цели недели");
       }
-      if (businessExists) {
-        points += 5;
-        reasons.push("+5: есть бизнес-действие");
+      if (isMeaningfulText(incomeTask)) {
+        points += preset.incomeTask;
+        reasons.push("+" + preset.incomeTask + ": есть действие на доход");
+      }
+      if (isMeaningfulText(systemTask)) {
+        points += preset.systemTask;
+        reasons.push("+" + preset.systemTask + ": есть системное бизнес-действие");
+      }
+      if (businessExists && isMeaningfulText(incomeTask) && isMeaningfulText(systemTask)) {
+        points += preset.fullBusinessBonus;
+        reasons.push("+" + preset.fullBusinessBonus + ": закрыт полный бизнес-блок (доход + система)");
       } else {
-        penalties -= 5;
-        reasons.push("-5: нет бизнес-задач");
+        penalties += preset.missingBusinessPenalty;
+        reasons.push(preset.missingBusinessPenalty + ": бизнес-блок заполнен не полностью");
       }
       if (isMeaningfulText(sport)) {
-        points += 5;
-        reasons.push("+5: есть здоровье/спорт");
+        points += preset.sport;
+        reasons.push("+" + preset.sport + ": есть здоровье/спорт");
       }
       if (rituals.morningPriorities && rituals.eveningFact) {
-        points += 2;
-        reasons.push("+2: выполнены утренний и вечерний ритуалы");
+        points += preset.ritualsBonus;
+        reasons.push("+" + preset.ritualsBonus + ": выполнены утренний и вечерний ритуалы");
       }
 
       if (isMeaningfulText(notDone) && !looksLikeNoMiss(notDone)) {
         if (hasTransferPlan(answers)) {
-          penalties -= 2;
-          reasons.push("-2: есть незавершенное, но есть конкретный перенос");
+          penalties += preset.missWithTransferPenalty;
+          reasons.push(preset.missWithTransferPenalty + ": есть незавершенное, но есть конкретный перенос");
         } else {
-          penalties -= 5;
-          reasons.push("-5: незавершенное без конкретного переноса");
+          penalties += preset.missWithoutTransferPenalty;
+          reasons.push(preset.missWithoutTransferPenalty + ": незавершенное без конкретного переноса");
         }
       }
       if (isYes(overload)) {
-        penalties -= 5;
-        reasons.push("-5: перегруз");
+        penalties += preset.overloadPenalty;
+        reasons.push(preset.overloadPenalty + ": перегруз");
       }
 
-      return { dayPoints: points + penalties, reasons: reasons };
+      const dayPoints = Math.max(preset.minDay, Math.min(preset.maxDay, points + penalties));
+      if (dayPoints !== points + penalties) {
+        reasons.push("Коррекция: дневной результат ограничен диапазоном " + preset.minDay + "..+" + preset.maxDay);
+      }
+      return { dayPoints: dayPoints, reasons: reasons };
     }
 
     function computeZoneScores(answers, rituals) {
@@ -574,25 +643,27 @@
       const good = [];
       const weak = [];
       const until12 = [];
+      const strictTone = context.scoringMode === "hard";
 
-      if (context.minimumSuccess.success) good.push("Есть минимум-успех за день. Ты не выпал из системы.");
+      if (context.minimumSuccess.success) good.push("Есть минимум-успех за день. Ты в игре и не сорвал систему.");
       if (context.rituals.morningPriorities && context.rituals.eveningFact) good.push("Ритуалы закрыты. Это база управляемой дисциплины.");
       if (context.zoneScores.money >= 60) good.push("Есть денежный фокус.");
       if (context.zoneScores.health >= 60) good.push("Контроль здоровья на уровне.");
 
-      if (!context.minimumSuccess.success) weak.push("Нет минимум-успеха: день прошел без ключевого результата.");
+      if (!context.minimumSuccess.success) weak.push(strictTone ? "Нет минимум-успеха: день прошел без ключевого результата." : "Минимум-успех не закрыт: сократи план и обязательно закрой 1 ключевое действие.");
       if (isYes(answers.overload) && (parseEnergy(answers.energy) || 0) <= 4) weak.push("Перегруз + низкая энергия. Нужен режим восстановления, а не геройство.");
-      if (!isMeaningfulText(answers.businessTaskIncome) || !isMeaningfulText(answers.businessTaskSystem)) weak.push("Просадка в бизнес-блоке: одна из задач пустая.");
-      if (isMeaningfulText(answers.notDone) && !looksLikeNoMiss(answers.notDone) && !hasTransferPlan(answers)) weak.push("Есть незавершенка без четкого переноса.");
+      if (!isMeaningfulText(answers.businessTaskIncome) || !isMeaningfulText(answers.businessTaskSystem)) weak.push(strictTone ? "Просадка в бизнес-блоке: доход и система должны идти парой." : "Бизнес-блок неполный: добавь второй шаг, чтобы удержать стабильность.");
+      if (isMeaningfulText(answers.notDone) && !looksLikeNoMiss(answers.notDone) && !hasTransferPlan(answers)) weak.push(strictTone ? "Есть незавершенка без четкого переноса." : "Есть незавершенка: зафиксируй перенос на завтра и время старта.");
       if (isMeaningfulText(answers.whyNotDoneCategory)) weak.push("Категория срыва: " + answers.whyNotDoneCategory + ".");
 
-      until12.push("Закрыть 1 самый важный шаг по фокусу дня.");
-      until12.push("Сделать короткое действие на деньги (звонок/оффер/доработка).");
+      until12.push("Закрыть 1 самый важный шаг по фокусу дня с измеримым результатом.");
+      until12.push("Сделать действие на деньги: звонок, оффер или конкретная продажная доработка.");
       if (context.lightMode) until12.push("До 12:00 не разгонять нагрузку: сначала энергия, затем результат.");
+      if (!context.lightMode) until12.push(strictTone ? "До 12:00 убрать второстепенные задачи и не открывать новые направления." : "До 12:00 закрой главное и только потом расширяй план.");
 
       return {
         good: good.length ? good.join(" ") : "Есть рабочая база, но нужно усилить конкретику результатов.",
-        weak: weak.length ? weak.join(" ") : "Критичных провалов нет. Держи курс и не распыляйся.",
+        weak: weak.length ? weak.join(" ") : (strictTone ? "Критичных провалов нет. Сохраняй темп и фокус на деньгах." : "Критичных провалов нет. Держи темп без перегруза."),
         until12: until12.join(" ")
       };
     }
@@ -629,6 +700,7 @@
       const fact = normalizeText(answers.doneYesterday) || "Не указано";
       const planBlock = resultCtx.planTasks.map(function (i) { return "- " + i; }).join("\n");
       const modeNote = resultCtx.lightMode ? "Включен облегченный режим дня: да" : "Включен облегченный режим дня: нет";
+      const scoreModeNote = resultCtx.scoringMode === "hard" ? "Режим оценки: Жесткий (рост дохода)" : "Режим оценки: Мягкий (антивыгорание)";
       const minNote = resultCtx.minimumSuccess.success ? "Минимум-успех за день: да" : "Минимум-успех за день: нет";
 
       return "➡️ Факт " + today + "\n\n" +
@@ -636,6 +708,7 @@
         "📋 План на " + tomorrow + "\n\n" +
         "Главный фокус завтра: " + resultCtx.mainFocus + "\n\n" +
         planBlock + "\n\n" +
+        scoreModeNote + "\n" +
         modeNote + "\n" +
         minNote + "\n" +
         "Серия дней (streak): " + state.streak + "\n\n" +
@@ -677,6 +750,8 @@
 
       els.morningRitual.checked = !!state.rituals.morningPriorities;
       els.eveningRitual.checked = !!state.rituals.eveningFact;
+      els.scoringMode.value = state.scoringMode || "hard";
+      els.modeHint.textContent = getScoringModeHint(state.scoringMode || "hard");
 
       setTimeout(function () { els.answerInput.focus(); }, 0);
     }
@@ -714,7 +789,7 @@
 
     function finalizeFlow() {
       const rituals = state.rituals;
-      const points = calculateDayPoints(state.answers, rituals);
+      const points = calculateDayPoints(state.answers, rituals, state.scoringMode || "hard");
       const zoneScores = computeZoneScores(state.answers, rituals);
       const minimumSuccess = evaluateMinimumSuccess(state.answers);
       const energy = parseEnergy(state.answers.energy);
@@ -729,7 +804,8 @@
         rituals: rituals,
         zoneScores: zoneScores,
         minimumSuccess: minimumSuccess,
-        lightMode: lightMode
+        lightMode: lightMode,
+        scoringMode: state.scoringMode || "hard"
       });
 
       const resultCtx = {
@@ -742,7 +818,8 @@
         mainFocus: mainFocus,
         planTasks: planTasks,
         analysis: analysis,
-        reasons: points.reasons
+        reasons: points.reasons,
+        scoringMode: state.scoringMode || "hard"
       };
 
       state.totalPoints = totalPoints;
@@ -761,6 +838,7 @@
         streak: state.streak,
         zoneScores: zoneScores,
         lightMode: lightMode,
+        scoringMode: state.scoringMode || "hard",
         report: state.report
       });
 
@@ -779,6 +857,7 @@
       }
       state.rituals.morningPriorities = !!els.morningRitual.checked;
       state.rituals.eveningFact = !!els.eveningRitual.checked;
+      state.scoringMode = els.scoringMode.value || "hard";
     }
 
     els.nextBtn.addEventListener("click", function () {
@@ -849,6 +928,13 @@
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         els.nextBtn.click();
       }
+    });
+
+    els.scoringMode.addEventListener("change", function () {
+      state.scoringMode = els.scoringMode.value || "hard";
+      els.modeHint.textContent = getScoringModeHint(state.scoringMode);
+      saveState();
+      renderSummaryPreview();
     });
 
     render();
