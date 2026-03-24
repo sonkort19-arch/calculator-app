@@ -638,7 +638,7 @@
       let healthScore = 0;
       if (health) healthScore += 60;
       if (energy !== null) healthScore += Math.max(0, Math.min(30, energy * 3));
-      if (!overload) healthScore += 10;
+      if (isMeaningfulText(answers.overload) && !overload) healthScore += 10;
 
       const history = state.history || [];
       const recent = history.slice(-6);
@@ -854,7 +854,18 @@
       elText.textContent = value + "/100";
     }
 
-    function getCoachStatus(zones, energy, overload) {
+    function answersLookEmpty(answers) {
+      if (!answers) return true;
+      return !Object.keys(answers).some(function (k) {
+        return isMeaningfulText(answers[k]);
+      });
+    }
+
+    function getCoachStatus(zones, energy, overload, answers, rituals) {
+      const sumZ = zones.discipline + zones.money + zones.business + zones.health;
+      if (sumZ === 0 && answersLookEmpty(answers) && !rituals.morningPriorities && !rituals.eveningFact) {
+        return { text: "Заполни вопросы — зоны и статус обновятся по мере ответов.", cls: "risk-mid" };
+      }
       const score = Math.round((zones.discipline + zones.money + zones.business + zones.health) / 4);
       if (overload && energy !== null && energy <= 4) {
         return { text: "Высокий риск срыва: убери лишнее, оставь 1 ключевую и восстановление.", cls: "risk-high" };
@@ -1034,7 +1045,7 @@
 
       const energy = parseEnergy(state.answers.energy);
       const overload = isYes(state.answers.overload);
-      const coach = getCoachStatus(zones, energy, overload);
+      const coach = getCoachStatus(zones, energy, overload, state.answers, state.rituals);
       els.coachStatus.textContent = coach.text;
       els.coachStatus.classList.remove("risk-low", "risk-mid", "risk-high");
       els.coachStatus.classList.add(coach.cls);
