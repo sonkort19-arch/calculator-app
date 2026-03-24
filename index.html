@@ -489,6 +489,7 @@
       return {
         ...fallback,
         ...source,
+        history: Array.isArray(source.history) ? source.history : [],
         answers: {
           ...fallback.answers,
           ...oldAnswers
@@ -517,6 +518,7 @@
       state.answers = { ...getDefaultState().answers };
       state.rituals = { ...getDefaultState().rituals };
       state.report = "";
+      saveState();
     }
 
     function saveState() {
@@ -641,7 +643,10 @@
       if (isMeaningfulText(answers.overload) && !overload) healthScore += 10;
 
       const history = state.history || [];
-      const recent = history.slice(-6);
+      const workDate = state.date || getTodayDate();
+      const recent = history.filter(function (item) {
+        return item.date !== workDate;
+      }).slice(-6);
       if (recent.length > 0) {
         let d = 0, m = 0, b = 0, h = 0;
         recent.forEach(function (item) {
@@ -946,7 +951,7 @@
         rows.push("История пуста.");
         return rows.join("\n");
       }
-      history.forEach(function (item, index) {
+      sortByDateAsc(history).forEach(function (item, index) {
         rows.push("===== День " + (index + 1) + " | " + (item.date || "—") + " =====");
         rows.push("Очки за день: " + (item.dayPoints || 0));
         rows.push("Общие очки: " + (item.totalPoints || 0));
@@ -1003,7 +1008,7 @@
         "report"
       ];
       const lines = [headers.map(csvEscape).join(",")];
-      (state.history || []).forEach(function (item) {
+      sortByDateAsc(state.history || []).forEach(function (item) {
         const a = item.answers || {};
         const z = item.zoneScores || {};
         const row = [
@@ -1128,8 +1133,13 @@
       state.totalPoints = totalPoints;
       state.date = today;
       state.report = buildReport(resultCtx);
-      state.history[state.history.length - 1].report = state.report;
-      state.history[state.history.length - 1].streak = state.streak;
+      const dayIdx = state.history.findIndex(function (h) {
+        return h.date === today;
+      });
+      if (dayIdx >= 0) {
+        state.history[dayIdx].report = state.report;
+        state.history[dayIdx].streak = state.streak;
+      }
 
       saveState();
       renderSummaryPreview();
@@ -1149,6 +1159,8 @@
       state.scoringMode = els.scoringMode.value || "hard";
     }
 
+    let finalizeBusy = false;
+
     els.nextBtn.addEventListener("click", function () {
       const q = QUESTIONS[state.currentQuestionIndex];
       const value = els.answerInput.value.trim();
@@ -1161,6 +1173,14 @@
         const num = parseEnergy(value);
         if (num === null || num < 1 || num > 10) {
           showError("Энергия должна быть числом от 1 до 10.");
+          return;
+        }
+      }
+      if (q.key === "overload") {
+        const v = normalizeLower(value);
+        const okOverload = ["да", "yes", "y", "есть", "true", "нет", "no", "n", "не"].indexOf(v) !== -1;
+        if (!okOverload) {
+          showError("Перегруз: ответь коротко — да или нет.");
           return;
         }
       }
@@ -1179,12 +1199,21 @@
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
-      finalizeFlow();
+      if (finalizeBusy) return;
+      finalizeBusy = true;
+      try {
+        finalizeFlow();
+      } finally {
+        finalizeBusy = false;
+      }
     });
 
     els.backBtn.addEventListener("click", function () {
       if (state.currentQuestionIndex === 0) return;
       saveCurrentInput();
+      if (state.currentQuestionIndex === QUESTIONS.length - 1) {
+        state.report = "";
+      }
       state.currentQuestionIndex -= 1;
       saveState();
       render();
@@ -1250,7 +1279,7 @@
     });
 
     els.exportCsvBtn.addEventListener("click", function () {
-      const csv = buildHistoryCsv();
+      const csv = "\uFEFF" + buildHistoryCsv();
       const fileDate = getTodayDate().replace(/\./g, "-");
       downloadTextFile("mentor-history-" + fileDate + ".csv", csv, "text/csv;charset=utf-8");
     });
