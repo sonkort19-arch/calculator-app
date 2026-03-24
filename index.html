@@ -118,6 +118,17 @@
     .zone .bar { height: 8px; border-radius: 999px; background: #020617; overflow: hidden; border: 1px solid #1f2937; }
     .zone .fill { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #4ade80); }
     .zone .value { margin-top: 6px; font-size: 13px; color: #d1fae5; }
+    .coach-box { margin-top: 14px; border: 1px solid var(--line); border-radius: 12px; padding: 10px; background: #0b1220; }
+    .coach-title { font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .coach-value { font-size: 14px; }
+    .risk-low { color: #86efac; }
+    .risk-mid { color: #fcd34d; }
+    .risk-high { color: #fca5a5; }
+    .weekly-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+    .weekly-item { background: #0b1220; border: 1px solid var(--line); border-radius: 12px; padding: 10px; }
+    .history-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+    .history-row { display: flex; justify-content: space-between; gap: 8px; align-items: center; background: #0b1220; border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; }
+    .history-meta { color: var(--muted); font-size: 12px; }
 
     @media (max-width: 760px) {
       .question { font-size: 20px; }
@@ -213,6 +224,28 @@
           <div class="value" id="zoneHealthText">0/100</div>
         </div>
       </div>
+      <div class="coach-box">
+        <div class="coach-title">Статус наставника</div>
+        <div class="coach-value" id="coachStatus">Стабильный темп.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">Недельный срез</h2>
+      <div class="weekly-grid">
+        <div class="weekly-item"><div class="label">Средние очки (7 дн.)</div><div class="value" id="weeklyAvgPoints">0</div></div>
+        <div class="weekly-item"><div class="label">Минимум-успех</div><div class="value" id="weeklySuccessRate">0%</div></div>
+        <div class="weekly-item"><div class="label">Слабая зона</div><div class="value" id="weeklyWeakZone">—</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-top:0;">История отчётов</h2>
+      <div class="actions" style="margin-top:0; margin-bottom:8px;">
+        <button class="btn-secondary" id="exportHistoryBtn">Экспорт истории (.txt)</button>
+        <button class="btn-secondary" id="exportCsvBtn">Экспорт истории (.csv)</button>
+      </div>
+      <div class="history-list" id="historyList"></div>
     </div>
 
     <div class="card" id="resultCard" style="display:none;">
@@ -271,7 +304,14 @@
       zoneDisciplineText: document.getElementById("zoneDisciplineText"),
       zoneMoneyText: document.getElementById("zoneMoneyText"),
       zoneBusinessText: document.getElementById("zoneBusinessText"),
-      zoneHealthText: document.getElementById("zoneHealthText")
+      zoneHealthText: document.getElementById("zoneHealthText"),
+      coachStatus: document.getElementById("coachStatus"),
+      weeklyAvgPoints: document.getElementById("weeklyAvgPoints"),
+      weeklySuccessRate: document.getElementById("weeklySuccessRate"),
+      weeklyWeakZone: document.getElementById("weeklyWeakZone"),
+      historyList: document.getElementById("historyList"),
+      exportHistoryBtn: document.getElementById("exportHistoryBtn"),
+      exportCsvBtn: document.getElementById("exportCsvBtn")
     };
 
     function getTodayDate() {
@@ -385,8 +425,7 @@
           missWithoutTransferPenalty: -4,
           overloadPenalty: -4,
           minDay: -12,
-          maxDay: 32,
-          weakTone: "supportive"
+          maxDay: 32
         };
       }
       return {
@@ -402,8 +441,7 @@
         missWithoutTransferPenalty: -5,
         overloadPenalty: -5,
         minDay: -15,
-        maxDay: 35,
-        weakTone: "strict"
+        maxDay: 35
       };
     }
 
@@ -680,25 +718,54 @@
       };
     }
 
-    function updateStreakByMinimumSuccess(minimumSuccess) {
-      if (!minimumSuccess.success) return state.streak || 0;
-      const today = getTodayDate();
-      const last = state.lastSuccessDate || "";
-      if (!last) {
-        state.lastSuccessDate = today;
-        return 1;
+    function sortByDateAsc(list) {
+      return list.slice().sort(function (a, b) {
+        const da = dateToObj(a.date);
+        const db = dateToObj(b.date);
+        const ta = da ? da.getTime() : 0;
+        const tb = db ? db.getTime() : 0;
+        return ta - tb;
+      });
+    }
+
+    function recomputeStreakFromHistory(history) {
+      if (!history || history.length === 0) return { streak: 0, lastSuccessDate: "" };
+      const sorted = sortByDateAsc(history);
+      const byDate = {};
+      sorted.forEach(function (item) {
+        byDate[item.date] = item;
+      });
+      const dates = Object.keys(byDate).sort(function (a, b) {
+        const da = dateToObj(a);
+        const db = dateToObj(b);
+        return (da ? da.getTime() : 0) - (db ? db.getTime() : 0);
+      });
+      if (dates.length === 0) return { streak: 0, lastSuccessDate: "" };
+
+      const lastDate = dates[dates.length - 1];
+      if (!byDate[lastDate].minimumSuccess) return { streak: 0, lastSuccessDate: "" };
+
+      let streak = 1;
+      let cursor = lastDate;
+      for (let i = dates.length - 2; i >= 0; i -= 1) {
+        const date = dates[i];
+        const diff = daysBetween(date, cursor);
+        if (diff !== 1) break;
+        if (!byDate[date].minimumSuccess) break;
+        streak += 1;
+        cursor = date;
       }
-      const diff = daysBetween(last, today);
-      if (diff <= 0) {
-        state.lastSuccessDate = today;
-        return state.streak || 1;
+      return { streak: streak, lastSuccessDate: lastDate };
+    }
+
+    function upsertHistoryEntry(entry) {
+      const index = (state.history || []).findIndex(function (item) { return item.date === entry.date; });
+      if (index >= 0) {
+        state.history[index] = entry;
+      } else {
+        state.history.push(entry);
       }
-      if (diff === 1) {
-        state.lastSuccessDate = today;
-        return (state.streak || 0) + 1;
-      }
-      state.lastSuccessDate = today;
-      return 1;
+      state.history = sortByDateAsc(state.history).slice(-180);
     }
 
     function buildReport(resultCtx) {
@@ -774,6 +841,172 @@
       elText.textContent = value + "/100";
     }
 
+    function getCoachStatus(zones, energy, overload) {
+      const score = Math.round((zones.discipline + zones.money + zones.business + zones.health) / 4);
+      if (overload && energy !== null && energy <= 4) {
+        return { text: "Высокий риск срыва: убери лишнее, оставь 1 ключевую и восстановление.", cls: "risk-high" };
+      }
+      if (score < 45) {
+        return { text: "Риск высокий: сегодня нужен минимальный победный день.", cls: "risk-high" };
+      }
+      if (score < 70) {
+        return { text: "Риск средний: держи фокус на деньги + дисциплину до 12:00.", cls: "risk-mid" };
+      }
+      return { text: "Риск низкий: темп хороший, усиливай результат без перегруза.", cls: "risk-low" };
+    }
+
+    function computeWeeklySnapshot() {
+      const recent = (state.history || []).slice(-7);
+      if (!recent.length) {
+        return { avgPoints: 0, successRate: 0, weakZone: "—" };
+      }
+      let pointsSum = 0;
+      let successCount = 0;
+      let d = 0, m = 0, b = 0, h = 0;
+      recent.forEach(function (day) {
+        pointsSum += day.dayPoints || 0;
+        if (day.minimumSuccess) successCount += 1;
+        const z = day.zoneScores || {};
+        d += z.discipline || 0;
+        m += z.money || 0;
+        b += z.business || 0;
+        h += z.health || 0;
+      });
+      const avgZones = [
+        { key: "Дисциплина", val: d / recent.length },
+        { key: "Деньги", val: m / recent.length },
+        { key: "Бизнес", val: b / recent.length },
+        { key: "Здоровье", val: h / recent.length }
+      ];
+      avgZones.sort(function (a, b2) { return a.val - b2.val; });
+      return {
+        avgPoints: Math.round(pointsSum / recent.length),
+        successRate: Math.round((successCount / recent.length) * 100),
+        weakZone: avgZones[0].key
+      };
+    }
+
+    function renderHistoryList() {
+      const items = (state.history || []).slice(-10).reverse();
+      if (!items.length) {
+        els.historyList.innerHTML = "<div class=\"history-meta\">История пока пустая.</div>";
+        return;
+      }
+      els.historyList.innerHTML = "";
+      items.forEach(function (item) {
+        const row = document.createElement("div");
+        row.className = "history-row";
+        const left = document.createElement("div");
+        left.innerHTML = "<div><strong>" + item.date + "</strong></div><div class=\"history-meta\">Очки: " + (item.dayPoints || 0) + " | Уровень: " + (item.level || "—") + "</div>";
+        const btn = document.createElement("button");
+        btn.className = "btn-secondary";
+        btn.textContent = "Открыть";
+        btn.addEventListener("click", function () {
+          state.report = item.report || "";
+          renderSummaryPreview();
+          els.resultCard.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        row.appendChild(left);
+        row.appendChild(btn);
+        els.historyList.appendChild(row);
+      });
+    }
+
+    function buildHistoryExportText() {
+      const rows = [];
+      rows.push("Персональный наставник — экспорт истории");
+      rows.push("Дата выгрузки: " + getTodayDate());
+      rows.push("");
+      const history = state.history || [];
+      if (!history.length) {
+        rows.push("История пуста.");
+        return rows.join("\n");
+      }
+      history.forEach(function (item, index) {
+        rows.push("===== День " + (index + 1) + " | " + (item.date || "—") + " =====");
+        rows.push("Очки за день: " + (item.dayPoints || 0));
+        rows.push("Общие очки: " + (item.totalPoints || 0));
+        rows.push("Уровень: " + (item.level || "—"));
+        rows.push("Минимум-успех: " + (item.minimumSuccess ? "да" : "нет"));
+        rows.push("Серия: " + (item.streak || 0));
+        if (item.zoneScores) {
+          rows.push("Зоны: дисциплина=" + (item.zoneScores.discipline || 0) + ", деньги=" + (item.zoneScores.money || 0) + ", бизнес=" + (item.zoneScores.business || 0) + ", здоровье=" + (item.zoneScores.health || 0));
+        }
+        rows.push("");
+        rows.push("Отчет:");
+        rows.push(item.report || "—");
+        rows.push("");
+      });
+      return rows.join("\n");
+    }
+
+    function downloadTextFile(fileName, text, mimeType) {
+      const blob = new Blob([text], { type: mimeType || "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function csvEscape(value) {
+      const v = String(value === null || value === undefined ? "" : value);
+      return "\"" + v.replace(/"/g, "\"\"") + "\"";
+    }
+
+    function buildHistoryCsv() {
+      const headers = [
+        "date",
+        "dayPoints",
+        "totalPoints",
+        "level",
+        "minimumSuccess",
+        "streak",
+        "scoringMode",
+        "lightMode",
+        "zoneDiscipline",
+        "zoneMoney",
+        "zoneBusiness",
+        "zoneHealth",
+        "weekGoal",
+        "businessTaskIncome",
+        "businessTaskSystem",
+        "sportHealth",
+        "financialGoal",
+        "report"
+      ];
+      const lines = [headers.map(csvEscape).join(",")];
+      (state.history || []).forEach(function (item) {
+        const a = item.answers || {};
+        const z = item.zoneScores || {};
+        const row = [
+          item.date || "",
+          item.dayPoints || 0,
+          item.totalPoints || 0,
+          item.level || "",
+          item.minimumSuccess ? "yes" : "no",
+          item.streak || 0,
+          item.scoringMode || "",
+          item.lightMode ? "yes" : "no",
+          z.discipline || 0,
+          z.money || 0,
+          z.business || 0,
+          z.health || 0,
+          a.weekGoal || "",
+          a.businessTaskIncome || "",
+          a.businessTaskSystem || "",
+          a.sportHealth || "",
+          a.financialGoal || "",
+          item.report || ""
+        ];
+        lines.push(row.map(csvEscape).join(","));
+      });
+      return lines.join("\n");
+    }
+
     function renderSummaryPreview() {
       els.totalPointsValue.textContent = state.totalPoints || 0;
       els.levelValue.textContent = getLevel(state.totalPoints || 0);
@@ -785,6 +1018,19 @@
       setZone(els.zoneMoney, els.zoneMoneyText, zones.money);
       setZone(els.zoneBusiness, els.zoneBusinessText, zones.business);
       setZone(els.zoneHealth, els.zoneHealthText, zones.health);
+
+      const energy = parseEnergy(state.answers.energy);
+      const overload = isYes(state.answers.overload);
+      const coach = getCoachStatus(zones, energy, overload);
+      els.coachStatus.textContent = coach.text;
+      els.coachStatus.classList.remove("risk-low", "risk-mid", "risk-high");
+      els.coachStatus.classList.add(coach.cls);
+
+      const weekly = computeWeeklySnapshot();
+      els.weeklyAvgPoints.textContent = weekly.avgPoints;
+      els.weeklySuccessRate.textContent = weekly.successRate + "%";
+      els.weeklyWeakZone.textContent = weekly.weakZone;
+      renderHistoryList();
 
       if (state.report) {
         els.resultCard.style.display = "block";
@@ -801,15 +1047,16 @@
     }
 
     function finalizeFlow() {
+      const today = getTodayDate();
       const rituals = state.rituals;
       const points = calculateDayPoints(state.answers, rituals, state.scoringMode || "hard");
       const zoneScores = computeZoneScores(state.answers, rituals);
       const minimumSuccess = evaluateMinimumSuccess(state.answers);
       const energy = parseEnergy(state.answers.energy);
       const lightMode = isYes(state.answers.overload) && energy !== null && energy <= 4;
-      state.streak = updateStreakByMinimumSuccess(minimumSuccess);
-
-      const totalPoints = Math.max(0, (state.totalPoints || 0) + points.dayPoints);
+      const existingToday = (state.history || []).find(function (item) { return item.date === today; });
+      const previousTodayPoints = existingToday ? Number(existingToday.dayPoints || 0) : 0;
+      const totalPoints = Math.max(0, (state.totalPoints || 0) - previousTodayPoints + points.dayPoints);
       const level = getLevel(totalPoints);
       const mainFocus = getMainFocus(state.answers, lightMode);
       const planTasks = buildPlanTasks(state.answers, lightMode);
@@ -835,12 +1082,8 @@
         scoringMode: state.scoringMode || "hard"
       };
 
-      state.totalPoints = totalPoints;
-      state.date = getTodayDate();
-      state.report = buildReport(resultCtx);
-
-      state.history.push({
-        date: state.date,
+      upsertHistoryEntry({
+        date: today,
         answers: { ...state.answers },
         rituals: { ...state.rituals },
         reasons: points.reasons,
@@ -854,6 +1097,15 @@
         scoringMode: state.scoringMode || "hard",
         report: state.report
       });
+
+      const streakInfo = recomputeStreakFromHistory(state.history);
+      state.streak = streakInfo.streak;
+      state.lastSuccessDate = streakInfo.lastSuccessDate;
+      state.totalPoints = totalPoints;
+      state.date = today;
+      state.report = buildReport(resultCtx);
+      state.history[state.history.length - 1].report = state.report;
+      state.history[state.history.length - 1].streak = state.streak;
 
       saveState();
       renderSummaryPreview();
@@ -943,12 +1195,40 @@
       }
     });
 
+    els.answerInput.addEventListener("input", function () {
+      const q = QUESTIONS[state.currentQuestionIndex];
+      state.answers[q.key] = els.answerInput.value;
+      if (q.key === "whyNotDone") {
+        state.answers.whyNotDoneCategory = els.reasonCategory.value;
+      }
+      saveState();
+    });
+
+    els.reasonCategory.addEventListener("change", function () {
+      if (QUESTIONS[state.currentQuestionIndex].key === "whyNotDone") {
+        state.answers.whyNotDoneCategory = els.reasonCategory.value;
+        saveState();
+      }
+    });
+
     els.scoringMode.addEventListener("change", function () {
       state.scoringMode = els.scoringMode.value || "hard";
       els.modeHint.textContent = getScoringModeHint(state.scoringMode);
       applyModeVisual(state.scoringMode);
       saveState();
       renderSummaryPreview();
+    });
+
+    els.exportHistoryBtn.addEventListener("click", function () {
+      const text = buildHistoryExportText();
+      const fileDate = getTodayDate().replace(/\./g, "-");
+      downloadTextFile("mentor-history-" + fileDate + ".txt", text, "text/plain;charset=utf-8");
+    });
+
+    els.exportCsvBtn.addEventListener("click", function () {
+      const csv = buildHistoryCsv();
+      const fileDate = getTodayDate().replace(/\./g, "-");
+      downloadTextFile("mentor-history-" + fileDate + ".csv", csv, "text/csv;charset=utf-8");
     });
 
     render();
