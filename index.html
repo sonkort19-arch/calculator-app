@@ -145,7 +145,7 @@
   <div class="app">
     <div class="card">
       <h1>Персональный наставник</h1>
-      <div class="sub">План / факт, очки, уровень, streak и анти-перегруз.</div>
+      <div class="sub">План / факт, очки, уровень, streak и анти-перегруз. Один файл — без установки; данные сохраняются в браузере на этом устройстве.</div>
 
       <div class="progress">
         <span id="progressText">Вопрос 1 из 11</span>
@@ -258,7 +258,19 @@
   </div>
 
   <script>
-    const STORAGE_KEY = "mentor_tracker_v1";
+    const STORAGE_KEY = "mentor_tracker_app_v1";
+    const LEGACY_PURGE_FLAG = "mentor_tracker_legacy_purge_2025_03";
+    (function purgeLegacyStorageOnce() {
+      try {
+        if (localStorage.getItem(LEGACY_PURGE_FLAG)) return;
+        ["mentor_tracker_v1", "disciplineTrackerData", "disciplineTrackerTotalPoints"].forEach(function (k) {
+          try {
+            localStorage.removeItem(k);
+          } catch (e) {}
+        });
+        localStorage.setItem(LEGACY_PURGE_FLAG, "1");
+      } catch (e) {}
+    })();
 
     const QUESTIONS = [
       { key: "doneYesterday", text: "Вопрос 1: Что ты сделал вчера?", hint: "Кратко списком." },
