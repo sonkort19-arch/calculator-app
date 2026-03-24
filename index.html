@@ -75,6 +75,10 @@
     .check-item input { width: auto; padding: 0; }
     .mode-row { margin-top: 12px; max-width: 320px; }
     .mode-hint { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .mode-soft { border-color: #3b82f6; box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2) inset; }
+    .mode-hard { border-color: #f59e0b; box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.2) inset; }
+    .hint-soft { color: #93c5fd; }
+    .hint-hard { color: #fcd34d; }
 
     .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
     button { border: 0; border-radius: 12px; padding: 12px 16px; font-size: 15px; font-weight: 700; cursor: pointer; transition: .2s ease; }
@@ -408,6 +412,14 @@
         return "Мягкий режим: ниже штрафы, выше поддержка. Подходит при усталости и восстановлении.";
       }
       return "Жесткий режим: выше вес действий на доход и строже штрафы. Подходит для ускорения роста.";
+    }
+
+    function applyModeVisual(mode) {
+      const isSoft = mode === "soft";
+      els.scoringMode.classList.toggle("mode-soft", isSoft);
+      els.scoringMode.classList.toggle("mode-hard", !isSoft);
+      els.modeHint.classList.toggle("hint-soft", isSoft);
+      els.modeHint.classList.toggle("hint-hard", !isSoft);
     }
 
     function migrateState(raw) {
@@ -752,6 +764,7 @@
       els.eveningRitual.checked = !!state.rituals.eveningFact;
       els.scoringMode.value = state.scoringMode || "hard";
       els.modeHint.textContent = getScoringModeHint(state.scoringMode || "hard");
+      applyModeVisual(state.scoringMode || "hard");
 
       setTimeout(function () { els.answerInput.focus(); }, 0);
     }
@@ -933,6 +946,7 @@
     els.scoringMode.addEventListener("change", function () {
       state.scoringMode = els.scoringMode.value || "hard";
       els.modeHint.textContent = getScoringModeHint(state.scoringMode);
+      applyModeVisual(state.scoringMode);
       saveState();
       renderSummaryPreview();
     });
