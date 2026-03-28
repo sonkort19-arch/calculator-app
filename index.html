@@ -2,144 +2,412 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Проверка за 7 дней</title>
 
 <style>
-body {
-  margin:0;
-  font-family: Arial;
-  background:#0f172a;
-  color:#fff;
-}
+  * {
+    box-sizing: border-box;
+  }
 
-.app {
-  max-width:420px;
-  margin:auto;
-  padding:16px;
-}
+  :root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card-2: #334155;
+    --text: #ffffff;
+    --muted: #cbd5e1;
+    --green: #22c55e;
+    --red: #ef4444;
+    --border: rgba(255,255,255,0.08);
+    --shadow: 0 10px 30px rgba(0,0,0,0.25);
+  }
 
-h1 {
-  text-align:center;
-}
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
 
-.block {
-  background:#1e293b;
-  padding:12px;
-  border-radius:12px;
-  margin-bottom:10px;
-}
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
 
-.item {
-  margin-bottom:10px;
-}
+  .app {
+    width: 100%;
+    max-width: 520px;
+    margin: 0 auto;
+    padding: 16px 14px 120px;
+  }
 
-label {
-  font-size:13px;
-  display:block;
-  margin-bottom:4px;
-}
+  .top {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    background: linear-gradient(to bottom, rgba(15,23,42,0.98), rgba(15,23,42,0.88));
+    backdrop-filter: blur(8px);
+    padding: 12px 0 10px;
+    margin-bottom: 8px;
+  }
 
-input {
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:none;
-}
+  h1 {
+    margin: 0 0 6px;
+    text-align: center;
+    font-size: 24px;
+    line-height: 1.2;
+  }
 
-button {
-  width:100%;
-  padding:14px;
-  margin-top:10px;
-  border:none;
-  border-radius:12px;
-  font-weight:bold;
-}
+  .sub {
+    text-align: center;
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
 
-.copy {
-  background:#22c55e;
-}
+  .progress-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    box-shadow: var(--shadow);
+  }
 
-.reset {
-  background:#ef4444;
-  color:#fff;
-}
+  .progress-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: var(--muted);
+  }
+
+  .bar {
+    width: 100%;
+    height: 10px;
+    background: var(--card-2);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--green);
+    border-radius: 999px;
+    transition: width 0.2s ease;
+  }
+
+  .list {
+    margin-top: 12px;
+  }
+
+  .block {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+  }
+
+  .question {
+    font-size: 15px;
+    line-height: 1.35;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+
+  .answer-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    display: block;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 92px;
+    resize: vertical;
+    padding: 12px 12px 14px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    outline: none;
+    background: #fff;
+    color: #111827;
+    font-size: 16px;
+    line-height: 1.45;
+    font-family: Arial, sans-serif;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  textarea:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(34,197,94,0.18);
+  }
+
+  .meta {
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .bottom-bar {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(15,23,42,0.98);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .bottom-inner {
+    max-width: 520px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  button {
+    width: 100%;
+    min-height: 52px;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .copy {
+    background: var(--green);
+    color: #052e16;
+  }
+
+  .reset {
+    background: var(--red);
+    color: #fff;
+  }
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 86px;
+    transform: translateX(-50%) translateY(20px);
+    background: #111827;
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.2s ease;
+    z-index: 30;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
 </style>
 </head>
 <body>
 
 <div class="app">
-  <h1>📊 Проверка за 7 дней</h1>
+  <div class="top">
+    <h1>📊 Проверка за 7 дней</h1>
+    <div class="sub">Заполняй ответы и копируй готовый отчет</div>
 
-  <div id="list"></div>
+    <div class="progress-card">
+      <div class="progress-row">
+        <span id="progressText">Заполнено: 0 / 9</span>
+        <span id="progressPercent">0%</span>
+      </div>
+      <div class="bar">
+        <div class="bar-fill" id="barFill"></div>
+      </div>
+    </div>
+  </div>
 
-  <button class="copy" onclick="copyReport()">Скопировать отчет</button>
-  <button class="reset" onclick="resetAll()">Сбросить</button>
+  <div class="list" id="list"></div>
 </div>
 
+<div class="bottom-bar">
+  <div class="bottom-inner">
+    <button class="copy" id="copyBtn">Скопировать отчет</button>
+    <button class="reset" id="resetBtn">Сбросить</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
 <script>
+const STORAGE_KEY = "report7_v2";
+
 const QUESTIONS = [
   "Сколько заказов было всего сделано за 7 дней",
   "Сколько продаж было за 7 дней",
   "Сколько заказов по сотрудникам за 7 дней",
-  "Совпадают ли фактические суммы с программой",
+  "Совпадают ли фактические суммы с записанными в программе",
   "Доход сотрудников за 7 дней",
-  "Товары и услуги по сотрудникам",
+  "Товары и услуги по сотрудникам за 7 дней",
   "Общая прибыль сервиса за 7 дней",
-  "Чистый остаток по заказам и товарам",
+  "Чистый остаток по заказам и товарам по сервису",
   "Просрочки за 7 дней"
 ];
 
 function load() {
-  return JSON.parse(localStorage.getItem("report7")) || {};
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+  } catch (e) {
+    return {};
+  }
 }
 
 function save(data) {
-  localStorage.setItem("report7", JSON.stringify(data));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
 
 function render() {
   const data = load();
   const list = document.getElementById("list");
-  list.innerHTML = "";
 
-  QUESTIONS.forEach((q, i) => {
+  list.innerHTML = QUESTIONS.map((q, i) => {
     const value = data[i] || "";
+    const trimmed = value.trim();
+    const symbols = trimmed.length;
 
-    list.innerHTML += `
+    return `
       <div class="block">
-        <div class="item">
-          <label>${i+1}. ${q}</label>
-          <input value="${value}" oninput="update(${i}, this.value)">
+        <div class="question">${i + 1}. ${escapeHtml(q)}</div>
+        <label class="answer-label" for="answer_${i}">Ответ</label>
+        <textarea
+          id="answer_${i}"
+          placeholder="Напиши ответ..."
+          oninput="updateAnswer(${i}, this.value)"
+        >${escapeHtml(value)}</textarea>
+        <div class="meta">
+          <span>${trimmed ? "Заполнено" : "Пусто"}</span>
+          <span>${symbols} симв.</span>
         </div>
       </div>
     `;
+  }).join("");
+
+  updateProgress();
+}
+
+function updateAnswer(index, value) {
+  const data = load();
+  data[index] = value;
+  save(data);
+  updateProgress();
+}
+
+function updateProgress() {
+  const data = load();
+  let filled = 0;
+
+  QUESTIONS.forEach((_, i) => {
+    if ((data[i] || "").trim() !== "") filled++;
+  });
+
+  const percent = Math.round((filled / QUESTIONS.length) * 100);
+  document.getElementById("progressText").textContent = `Заполнено: ${filled} / ${QUESTIONS.length}`;
+  document.getElementById("progressPercent").textContent = `${percent}%`;
+  document.getElementById("barFill").style.width = `${percent}%`;
+
+  const blocks = document.querySelectorAll(".block");
+  blocks.forEach((block, i) => {
+    const meta = block.querySelector(".meta span");
+    if (meta) {
+      meta.textContent = ((data[i] || "").trim() !== "") ? "Заполнено" : "Пусто";
+    }
+    const symbolsEl = block.querySelectorAll(".meta span")[1];
+    if (symbolsEl) {
+      symbolsEl.textContent = `${((data[i] || "").trim()).length} симв.`;
+    }
   });
 }
 
-function update(i, val) {
+function buildReportText() {
   const data = load();
-  data[i] = val;
-  save(data);
-}
-
-function copyReport() {
-  const data = load();
-
   let text = "📊 Проверка за 7 дней\n\n";
 
   QUESTIONS.forEach((q, i) => {
-    text += (i+1) + ". " + q + ":\n" + (data[i] || "-") + "\n\n";
+    const answer = (data[i] || "").trim() || "-";
+    text += `${i + 1}. ${q}:\n${answer}\n\n`;
   });
 
-  navigator.clipboard.writeText(text);
-  alert("Скопировано");
+  return text.trim();
+}
+
+async function copyReport() {
+  const text = buildReportText();
+
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast("Отчет скопирован");
+  } catch (error) {
+    fallbackCopy(text);
+  }
+}
+
+function fallbackCopy(text) {
+  const temp = document.createElement("textarea");
+  temp.value = text;
+  temp.style.position = "fixed";
+  temp.style.opacity = "0";
+  temp.style.pointerEvents = "none";
+  document.body.appendChild(temp);
+  temp.focus();
+  temp.select();
+
+  try {
+    document.execCommand("copy");
+    showToast("Отчет скопирован");
+  } catch (e) {
+    showToast("Не удалось скопировать");
+  }
+
+  document.body.removeChild(temp);
 }
 
 function resetAll() {
-  localStorage.removeItem("report7");
+  localStorage.removeItem(STORAGE_KEY);
   render();
+  showToast("Все очищено");
 }
+
+let toastTimer = null;
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 1800);
+}
+
+document.getElementById("copyBtn").addEventListener("click", copyReport);
+document.getElementById("resetBtn").addEventListener("click", resetAll);
 
 render();
 </script>
