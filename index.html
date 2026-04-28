@@ -20,7 +20,7 @@
       max-width: 900px;
       margin: 0 auto;
       padding: 20px;
-      padding-bottom: 120px;
+      padding-bottom: 84px;
     }
 
     .header {
@@ -98,14 +98,10 @@
       display: flex;
       gap: 12px;
       flex-wrap: wrap;
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      width: min(900px, 100%);
+      position: sticky;
       bottom: 0;
-      background: rgba(244, 246, 248, 0.96);
-      box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
-      padding: 12px 12px calc(12px + env(safe-area-inset-bottom));
+      background: #f4f6f8;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
       z-index: 20;
     }
 
@@ -149,18 +145,6 @@
       background: #f3f4f6;
     }
 
-    input[type="date"] {
-      text-align: left;
-    }
-
-    input[type="date"]::-webkit-date-and-time-value {
-      text-align: left;
-    }
-
-    input[type="date"]::-webkit-datetime-edit {
-      padding: 0;
-    }
-
     @media (max-width: 700px) {
       .grid {
         grid-template-columns: 1fr;
@@ -169,7 +153,7 @@
 
       .app {
         padding: 12px;
-        padding-bottom: 230px;
+        padding-bottom: 110px;
       }
 
       .card {
@@ -193,7 +177,6 @@
 
       .actions {
         gap: 8px;
-        padding: 10px 10px calc(10px + env(safe-area-inset-bottom));
       }
 
       .actions button {
