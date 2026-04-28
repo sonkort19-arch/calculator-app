@@ -20,6 +20,7 @@
       max-width: 900px;
       margin: 0 auto;
       padding: 20px;
+      padding-bottom: 84px;
     }
 
     .header {
@@ -100,7 +101,8 @@
       position: sticky;
       bottom: 0;
       background: #f4f6f8;
-      padding: 12px 0;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+      z-index: 20;
     }
 
     button {
@@ -110,6 +112,8 @@
       font-size: 15px;
       font-weight: 700;
       cursor: pointer;
+      min-height: 48px;
+      touch-action: manipulation;
     }
 
     .primary {
@@ -144,10 +148,39 @@
     @media (max-width: 700px) {
       .grid {
         grid-template-columns: 1fr;
+        gap: 10px;
       }
 
       .app {
         padding: 12px;
+        padding-bottom: 110px;
+      }
+
+      .card {
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .header {
+        padding: 16px;
+        border-radius: 14px;
+      }
+
+      .header h1 {
+        font-size: 21px;
+      }
+
+      input, textarea, select {
+        font-size: 16px;
+        padding: 13px;
+      }
+
+      .actions {
+        gap: 8px;
+      }
+
+      .actions button {
+        flex: 1 1 100%;
       }
     }
   </style>
@@ -182,15 +215,15 @@
       <div class="grid">
         <div>
           <label>Выручка</label>
-          <input id="revenue" type="number" placeholder="Например: 45000" />
+          <input id="revenue" type="number" min="0" placeholder="Например: 45000" />
         </div>
         <div>
           <label>Себестоимость запчастей / товаров</label>
-          <input id="cost" type="number" placeholder="Например: 18000" />
+          <input id="cost" type="number" min="0" placeholder="Например: 18000" />
         </div>
         <div>
           <label>Расходы</label>
-          <input id="expenses" type="number" placeholder="Например: 6000" />
+          <input id="expenses" type="number" min="0" placeholder="Например: 6000" />
         </div>
         <div>
           <label>Прибыль автоматически</label>
@@ -205,11 +238,11 @@
       <div class="grid">
         <div>
           <label>Выручка прошлого периода</label>
-          <input id="prevRevenue" type="number" placeholder="Например: 30000" />
+          <input id="prevRevenue" type="number" min="0" placeholder="Например: 30000" />
         </div>
         <div>
           <label>Прибыль прошлого периода</label>
-          <input id="prevProfit" type="number" placeholder="Например: 9000" />
+          <input id="prevProfit" type="number" min="0" placeholder="Например: 9000" />
         </div>
         <div>
           <label>Рост / падение выручки</label>
@@ -227,23 +260,23 @@
       <div class="grid">
         <div>
           <label>Новые</label>
-          <input id="newOrders" type="number" />
+          <input id="newOrders" type="number" min="0" />
         </div>
         <div>
           <label>В работе</label>
-          <input id="workOrders" type="number" />
+          <input id="workOrders" type="number" min="0" />
         </div>
         <div>
           <label>Готовые</label>
-          <input id="readyOrders" type="number" />
+          <input id="readyOrders" type="number" min="0" />
         </div>
         <div>
           <label>Выданные</label>
-          <input id="doneOrders" type="number" />
+          <input id="doneOrders" type="number" min="0" />
         </div>
         <div>
           <label>Ждём запчасть</label>
-          <input id="waitParts" type="number" />
+          <input id="waitParts" type="number" min="0" />
         </div>
         <div>
           <label>Средний чек автоматически</label>
@@ -288,7 +321,7 @@
         </div>
         <div>
           <label>Ожидаемый результат в деньгах</label>
-          <input id="expectedMoney" type="number" placeholder="Например: 15000" />
+          <input id="expectedMoney" type="number" min="0" placeholder="Например: 15000" />
         </div>
       </div>
     </div>
@@ -332,7 +365,25 @@
       return new Intl.NumberFormat('ru-RU').format(n) + ' ₽';
     }
 
+    function moneyOrDash(id) {
+      const raw = document.getElementById(id).value;
+      if (raw === '') return 'нет данных';
+      return money(num(id));
+    }
+
+    function sanitizeNumberField(id) {
+      const el = document.getElementById(id);
+      if (!el || el.type !== 'number') return;
+      const value = Number(el.value);
+      if (value < 0) el.value = 0;
+    }
+
+    function sanitizeNumbers() {
+      fields.forEach(sanitizeNumberField);
+    }
+
     function calculate() {
+      sanitizeNumbers();
       const revenue = num('revenue');
       const cost = num('cost');
       const expenses = num('expenses');
@@ -377,9 +428,9 @@
 Итог: ${result}
 
 2. СРАВНЕНИЕ
-Выручка прошлого периода: ${money(num('prevRevenue'))}
+Выручка прошлого периода: ${moneyOrDash('prevRevenue')}
 Рост / падение выручки: ${percentChange(c.revenue, num('prevRevenue'))}
-Прибыль прошлого периода: ${money(num('prevProfit'))}
+Прибыль прошлого периода: ${moneyOrDash('prevProfit')}
 Рост / падение прибыли: ${percentChange(c.profit, num('prevProfit'))}
 
 3. ЗАКАЗЫ
@@ -398,7 +449,7 @@
 5. РЕШЕНИЕ
 Что делаем: ${val('actionText')}
 Срок: ${val('deadline')}
-Ожидаемый результат: ${money(num('expectedMoney'))}
+Ожидаемый результат: ${moneyOrDash('expectedMoney')}
 
 ПРОСЬБА К НАСТАВНИКУ:
 Разбери мой отчёт. Скажи прямо:
@@ -426,6 +477,7 @@
       fields.forEach(id => document.getElementById(id).value = '');
       document.getElementById('report').textContent = 'Нажми “Сформировать отчёт”.';
       localStorage.removeItem('helloClientCheckData');
+      saveData();
       calculate();
     }
 
@@ -448,15 +500,24 @@
       calculate();
     }
 
-    fields.forEach(id => {
-      window.addEventListener('DOMContentLoaded', () => {
+    function initForm() {
+      loadData();
+      fields.forEach(id => {
         const el = document.getElementById(id);
-        el.addEventListener('input', calculate);
-        el.addEventListener('change', calculate);
+        if (!el) return;
+        el.addEventListener('input', () => {
+          calculate();
+          saveData();
+        });
+        el.addEventListener('change', () => {
+          calculate();
+          saveData();
+        });
       });
-    });
+      calculate();
+    }
 
-    window.addEventListener('DOMContentLoaded', loadData);
+    window.addEventListener('DOMContentLoaded', initForm);
   </script>
 </body>
 </html>
