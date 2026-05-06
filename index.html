@@ -1,523 +1,2163 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Проверка CRM HelloClient</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>НОМАДС — Диагностика бизнеса</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;600;700;900&family=Mulish:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d0f;
+  --surface: #141416;
+  --surface2: #1c1c1f;
+  --surface3: #242428;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --text: #f0ede8;
+  --text2: #9e9b95;
+  --text3: #5a5754;
+  --accent: #e8b84b;
+  --accent2: #c49a32;
+  --accent-dim: rgba(232,184,75,0.12);
+  --accent-dim2: rgba(232,184,75,0.06);
+  --green: #4caf7d;
+  --green-dim: rgba(76,175,125,0.12);
+  --red: #e05c5c;
+  --red-dim: rgba(224,92,92,0.12);
+  --orange: #e07d3c;
+  --orange-dim: rgba(224,125,60,0.12);
+  --r: 12px;
+  --r2: 8px;
+  --shadow: 0 8px 32px rgba(0,0,0,0.4);
+}
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      color: #111827;
-    }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .app {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px;
-      padding-bottom: 84px;
-    }
+body {
+  font-family: 'Mulish', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
 
-    .header {
-      background: #111827;
-      color: white;
-      padding: 20px;
-      border-radius: 16px;
-      margin-bottom: 20px;
-    }
+/* LAYOUT */
+.shell { display: flex; min-height: 100vh; }
 
-    .header h1 {
-      margin: 0 0 8px;
-      font-size: 24px;
-    }
+/* SIDEBAR */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0;
+  height: 100vh;
+  z-index: 100;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+}
 
-    .header p {
-      margin: 0;
-      color: #d1d5db;
-    }
+.sidebar-logo {
+  padding: 28px 24px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.logo-mark {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+.logo-sub {
+  font-size: 10px;
+  color: var(--text3);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
 
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 18px;
-      margin-bottom: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
-    }
+.nav { padding: 16px 0; flex: 1; }
+.nav-section { padding: 6px 24px 4px; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text3); font-weight: 700; margin-top: 8px; }
 
-    .card h2 {
-      margin: 0 0 14px;
-      font-size: 18px;
-      border-bottom: 1px solid #e5e7eb;
-      padding-bottom: 10px;
-    }
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 24px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+.nav-item:hover { color: var(--text); background: var(--accent-dim2); }
+.nav-item.active { color: var(--accent); background: var(--accent-dim); border-left-color: var(--accent); }
+.nav-item .nav-icon { width: 18px; text-align: center; font-size: 15px; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto;
+  background: var(--surface3);
+  color: var(--text3);
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 20px;
+  font-weight: 600;
+}
+.nav-item.active .nav-badge { background: var(--accent-dim); color: var(--accent); }
 
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
+.sidebar-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+}
+.progress-ring { font-size: 12px; color: var(--text3); margin-bottom: 8px; }
+.progress-bar-wrap { background: var(--surface3); border-radius: 4px; height: 4px; }
+.progress-bar-fill { background: var(--accent); height: 4px; border-radius: 4px; transition: width 0.5s ease; }
 
-    label {
-      display: block;
-      font-weight: 700;
-      margin-bottom: 6px;
-      font-size: 14px;
-    }
+/* MAIN */
+.main { margin-left: 260px; flex: 1; min-height: 100vh; }
 
-    input, textarea, select {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #d1d5db;
-      border-radius: 10px;
-      font-size: 15px;
-      background: #fff;
-    }
+/* TOP BAR */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-title {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
 
-    textarea {
-      min-height: 80px;
-      resize: vertical;
-    }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border-radius: var(--r2);
+  font-size: 13px;
+  font-weight: 600;
+  font-family: 'Mulish', sans-serif;
+  cursor: pointer;
+  transition: all 0.15s;
+  border: none;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #0d0d0f;
+}
+.btn-primary:hover { background: var(--accent2); transform: translateY(-1px); }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text2);
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
 
-    .result-box {
-      background: #f9fafb;
-      border: 1px solid #e5e7eb;
-      border-radius: 12px;
-      padding: 14px;
-      white-space: pre-wrap;
-      min-height: 220px;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-    }
+/* CONTENT */
+.content { padding: 32px; }
 
-    .actions {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      position: sticky;
-      bottom: 0;
-      background: #f4f6f8;
-      padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
-      z-index: 20;
-    }
+/* STEP */
+.step { display: none; animation: fadeUp 0.3s ease; }
+.step.active { display: block; }
 
-    button {
-      border: none;
-      border-radius: 12px;
-      padding: 14px 18px;
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      min-height: 48px;
-      touch-action: manipulation;
-    }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-    .primary {
-      background: #16a34a;
-      color: white;
-    }
+/* CARDS */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+.card-title {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.card-sub { font-size: 12px; color: var(--text3); margin-bottom: 20px; }
 
-    .dark {
-      background: #111827;
-      color: white;
-    }
+/* HERO */
+.hero {
+  background: linear-gradient(135deg, #1a1710 0%, #0d0d0f 60%);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 40px;
+  margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: 'NOMADS';
+  position: absolute;
+  right: -20px; top: -10px;
+  font-family: 'Unbounded', sans-serif;
+  font-size: 100px;
+  font-weight: 900;
+  color: rgba(232,184,75,0.04);
+  line-height: 1;
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+  font-weight: 700;
+}
+.hero-title {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 14px;
+  max-width: 480px;
+}
+.hero-desc { color: var(--text2); font-size: 14px; max-width: 460px; line-height: 1.7; }
 
-    .danger {
-      background: #dc2626;
-      color: white;
-    }
+/* STEPS INDICATOR */
+.steps-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+}
+.step-dot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 30px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1px solid var(--border);
+  color: var(--text3);
+}
+.step-dot.done { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+.step-dot.current { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
+.step-dot .sn {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  background: var(--surface3);
+}
+.step-dot.done .sn { background: var(--green); color: #fff; }
+.step-dot.current .sn { background: var(--accent); color: #000; }
 
-    .mini {
-      color: #6b7280;
-      font-size: 13px;
-      margin-top: 8px;
-    }
+/* FORM ELEMENTS */
+.form-group { margin-bottom: 18px; }
+.form-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text2);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+  display: block;
+}
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 11px 14px;
+  font-size: 14px;
+  color: var(--text);
+  font-family: 'Mulish', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--accent);
+  background: var(--surface3);
+}
+.form-select option { background: #222; }
+.form-textarea { resize: vertical; min-height: 80px; }
 
-    .status {
-      font-weight: 800;
-      padding: 10px 12px;
-      border-radius: 10px;
-      margin-top: 10px;
-      background: #f3f4f6;
-    }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
 
-    @media (max-width: 700px) {
-      .grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
+/* FINANCIAL ROW */
+.fin-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.fin-item {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 14px 16px;
+}
+.fin-item label {
+  font-size: 11px;
+  color: var(--text3);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 6px;
+}
+.fin-item input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Unbounded', sans-serif;
+  padding: 4px 0;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.fin-item input:focus { border-color: var(--accent); }
+.fin-item .fin-auto {
+  font-size: 18px;
+  font-weight: 700;
+  font-family: 'Unbounded', sans-serif;
+  color: var(--accent);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+  min-height: 32px;
+}
 
-      .app {
-        padding: 12px;
-        padding-bottom: 110px;
-      }
+/* SCORE BLOCKS */
+.score-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 18px 20px;
+  margin-bottom: 12px;
+}
+.score-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+.score-title { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.4; flex: 1; }
+.score-hint { font-size: 11px; color: var(--text3); line-height: 1.5; flex: 1; }
 
-      .card {
-        padding: 14px;
-        border-radius: 14px;
-      }
+.score-stars {
+  display: flex;
+  gap: 5px;
+  flex-shrink: 0;
+}
+.star-btn {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface3);
+  color: var(--text3);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.12s;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Unbounded', sans-serif;
+}
+.star-btn:hover { border-color: var(--accent); color: var(--accent); }
+.star-btn.active { background: var(--accent); border-color: var(--accent); color: #000; }
 
-      .header {
-        padding: 16px;
-        border-radius: 14px;
-      }
+.score-bar-wrap { background: var(--surface3); border-radius: 4px; height: 5px; margin-top: 12px; }
+.score-bar { height: 5px; border-radius: 4px; transition: width 0.3s ease; }
 
-      .header h1 {
-        font-size: 21px;
-      }
+/* CHECKBOXES / CHIPS */
+.chip-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  padding: 8px 14px;
+  border-radius: 30px;
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+}
+.chip:hover { border-color: var(--accent); color: var(--accent); }
+.chip.selected { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 
-      input, textarea, select {
-        font-size: 16px;
-        padding: 13px;
-      }
+/* SECTION HEADER */
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.section-emoji {
+  width: 44px; height: 44px;
+  border-radius: 10px;
+  background: var(--accent-dim);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+.section-label { font-family: 'Unbounded', sans-serif; font-size: 15px; font-weight: 700; }
+.section-meta { font-size: 12px; color: var(--text3); }
+.section-score-badge {
+  margin-left: auto;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 16px;
+  text-align: center;
+}
+.section-score-badge .score-num { font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 900; color: var(--accent); }
+.section-score-badge .score-lbl { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; }
 
-      .actions {
-        gap: 8px;
-      }
+/* RESULTS */
+.radar-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px 0;
+}
 
-      .actions button {
-        flex: 1 1 100%;
-      }
-    }
-  </style>
+.result-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.result-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  padding: 16px 18px;
+  transition: border-color 0.2s;
+}
+.result-card:hover { border-color: var(--border2); }
+.result-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.result-card-label { font-size: 13px; font-weight: 600; color: var(--text); }
+.result-card-score {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+}
+.score-bar-track { background: var(--surface3); border-radius: 4px; height: 6px; }
+.score-bar-val { height: 6px; border-radius: 4px; transition: width 0.5s ease; }
+
+/* STATUS badges */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.badge-red { background: var(--red-dim); color: var(--red); }
+.badge-orange { background: var(--orange-dim); color: var(--orange); }
+.badge-green { background: var(--green-dim); color: var(--green); }
+.badge-yellow { background: var(--accent-dim); color: var(--accent); }
+
+/* GOALS TABLE */
+.goals-table { width: 100%; border-collapse: collapse; }
+.goals-table th {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text3);
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.goals-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.goals-table input, .goals-table select {
+  background: transparent;
+  border: none;
+  color: var(--text);
+  font-family: 'Mulish', sans-serif;
+  font-size: 13px;
+  width: 100%;
+  outline: none;
+  padding: 2px 0;
+}
+.goals-table input::placeholder { color: var(--text3); }
+.goals-table tr:last-child td { border-bottom: none; }
+
+/* TOOLS */
+.tools-section { margin-bottom: 28px; }
+.tools-section-head {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text2);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.tool-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+.tool-item:last-child { border-bottom: none; }
+.tool-info { flex: 1; }
+.tool-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.tool-desc { font-size: 12px; color: var(--text3); margin-top: 2px; }
+.tool-priority {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.06em;
+}
+.prio-urgent { background: var(--red-dim); color: var(--red); }
+.prio-important { background: var(--orange-dim); color: var(--orange); }
+.prio-prospect { background: var(--green-dim); color: var(--green); }
+
+.tool-status-sel {
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text2);
+  font-size: 11px;
+  padding: 5px 8px;
+  font-family: 'Mulish', sans-serif;
+  cursor: pointer;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+/* PRINT / PDF styles */
+.pdf-btn-area { margin-bottom: 20px; }
+
+/* RADAR SVG */
+.radar-svg { overflow: visible; }
+
+/* MOBILE HAMBURGER */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  cursor: pointer;
+  padding: 4px;
+  background: none;
+  border: none;
+}
+.hamburger span {
+  display: block;
+  width: 22px; height: 2px;
+  background: var(--text2);
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 99;
+}
+
+/* SCORE COLOR FUNCTIONS */
+.col-red { color: var(--red) !important; }
+.col-orange { color: var(--orange) !important; }
+.col-yellow { color: var(--accent) !important; }
+.col-green { color: var(--green) !important; }
+.bar-red { background: var(--red); }
+.bar-orange { background: var(--orange); }
+.bar-yellow { background: var(--accent); }
+.bar-green { background: var(--green); }
+
+/* PATTERN chips */
+.pattern-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--r2);
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pattern-item:hover { border-color: var(--border2); }
+.pattern-item.selected { border-color: var(--accent); background: var(--accent-dim2); }
+.pattern-check {
+  width: 20px; height: 20px;
+  border-radius: 5px;
+  border: 2px solid var(--border2);
+  flex-shrink: 0;
+  margin-top: 2px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  font-size: 11px;
+}
+.pattern-item.selected .pattern-check { background: var(--accent); border-color: var(--accent); color: #000; }
+.pattern-title { font-size: 13px; font-weight: 600; color: var(--text); }
+.pattern-desc { font-size: 12px; color: var(--text3); margin-top: 3px; }
+
+/* NOTIFICATION / TOAST */
+.toast {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  background: var(--green);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  z-index: 9999;
+  transform: translateY(80px);
+  opacity: 0;
+  transition: all 0.3s;
+  pointer-events: none;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
+/* DIVIDER */
+.divider { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+/* INLINE SCORE NUM */
+.inline-score { font-family: 'Unbounded', sans-serif; font-size: 12px; font-weight: 700; }
+
+/* FOCUS COUNTER */
+.focus-counter {
+  background: var(--surface3);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--text2);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.focus-count { font-weight: 700; color: var(--accent); font-family: 'Unbounded', sans-serif; font-size: 13px; }
+
+/* PRINT STYLES */
+@media print {
+  .sidebar, .topbar, .hamburger, .btn, .steps-row, .pdf-btn-area { display: none !important; }
+  .main { margin-left: 0 !important; }
+  .content { padding: 16px !important; }
+  body { background: white !important; color: black !important; }
+  .card, .score-block, .result-card { background: white !important; border: 1px solid #ddd !important; break-inside: avoid; }
+  .step { display: block !important; }
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay.open { display: block; }
+  .main { margin-left: 0; }
+  .hamburger { display: flex; }
+  .form-grid, .form-grid-3, .fin-row, .result-grid { grid-template-columns: 1fr; }
+  .hero { padding: 24px; }
+  .hero-title { font-size: 20px; }
+  .content { padding: 16px; }
+  .steps-row { gap: 6px; }
+  .step-dot { padding: 6px 10px; font-size: 11px; }
+}
+
+@media (max-width: 600px) {
+  .score-header { flex-direction: column; align-items: flex-start; }
+  .score-stars { margin-top: 8px; }
+  .topbar { padding: 12px 16px; }
+  .topbar-title { font-size: 12px; }
+}
+
+/* OVERVIEW BLOCKS */
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.ov-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px 20px;
+}
+.ov-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 8px; }
+.ov-val { font-family: 'Unbounded', sans-serif; font-size: 26px; font-weight: 900; line-height: 1; }
+.ov-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+@media (max-width: 900px) {
+  .overview-grid { grid-template-columns: 1fr 1fr; }
+}
+
+</style>
 </head>
 <body>
-  <div class="app">
-    <div class="header">
-      <h1>Контроль CRM HelloClient</h1>
-      <p>Заполни данные, скопируй отчёт и отправь наставнику для разбора роста или убытка.</p>
+
+<div class="shell">
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">НОМАДС</div>
+    <div class="logo-sub">Диагностика бизнеса</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">Начало</div>
+    <div class="nav-item active" onclick="goToStep('onboarding')">
+      <span class="nav-icon">📋</span> Онбординг
+      <span class="nav-badge" id="badge-onboarding">→</span>
+    </div>
+    <div class="nav-item" onclick="goToStep('owner')">
+      <span class="nav-icon">👤</span> Собственник
+      <span class="nav-badge" id="badge-owner">0/8</span>
     </div>
 
-    <div class="card">
-      <h2>1. Дата и период</h2>
-      <div class="grid">
-        <div>
-          <label>Дата</label>
-          <input id="date" type="date" />
-        </div>
-        <div>
-          <label>Период</label>
-          <select id="period">
-            <option>День</option>
-            <option>Неделя</option>
-            <option>Месяц</option>
-          </select>
-        </div>
-      </div>
+    <div class="nav-section">Оценка бизнеса</div>
+    <div class="nav-item" onclick="goToStep('marketing')">
+      <span class="nav-icon">📣</span> Маркетинг
+      <span class="nav-badge" id="badge-marketing">0/15</span>
+    </div>
+    <div class="nav-item" onclick="goToStep('sales')">
+      <span class="nav-icon">💼</span> Продажи
+      <span class="nav-badge" id="badge-sales">0/15</span>
+    </div>
+    <div class="nav-item" onclick="goToStep('product')">
+      <span class="nav-icon">📦</span> Продукт
+      <span class="nav-badge" id="badge-product">0/15</span>
+    </div>
+    <div class="nav-item" onclick="goToStep('finance')">
+      <span class="nav-icon">💰</span> Финансы
+      <span class="nav-badge" id="badge-finance">0/15</span>
+    </div>
+    <div class="nav-item" onclick="goToStep('management')">
+      <span class="nav-icon">⚙️</span> Управление
+      <span class="nav-badge" id="badge-management">0/15</span>
+    </div>
+    <div class="nav-item" onclick="goToStep('bizmodel')">
+      <span class="nav-icon">🧩</span> Бизнес-модель
+      <span class="nav-badge" id="badge-bizmodel">0/15</span>
     </div>
 
-    <div class="card">
-      <h2>2. Деньги</h2>
-      <div class="grid">
-        <div>
-          <label>Выручка</label>
-          <input id="revenue" type="number" min="0" placeholder="Например: 45000" />
-        </div>
-        <div>
-          <label>Себестоимость запчастей / товаров</label>
-          <input id="cost" type="number" min="0" placeholder="Например: 18000" />
-        </div>
-        <div>
-          <label>Расходы</label>
-          <input id="expenses" type="number" min="0" placeholder="Например: 6000" />
-        </div>
-        <div>
-          <label>Прибыль автоматически</label>
-          <input id="profit" type="text" readonly />
-        </div>
-      </div>
-      <div id="profitStatus" class="status">Статус появится после заполнения</div>
+    <div class="nav-section">Итоги</div>
+    <div class="nav-item" onclick="goToStep('results')">
+      <span class="nav-icon">📊</span> Результаты
     </div>
-
-    <div class="card">
-      <h2>3. Сравнение</h2>
-      <div class="grid">
-        <div>
-          <label>Выручка прошлого периода</label>
-          <input id="prevRevenue" type="number" min="0" placeholder="Например: 30000" />
-        </div>
-        <div>
-          <label>Прибыль прошлого периода</label>
-          <input id="prevProfit" type="number" min="0" placeholder="Например: 9000" />
-        </div>
-        <div>
-          <label>Рост / падение выручки</label>
-          <input id="revenueGrowth" type="text" readonly />
-        </div>
-        <div>
-          <label>Рост / падение прибыли</label>
-          <input id="profitGrowth" type="text" readonly />
-        </div>
-      </div>
+    <div class="nav-item" onclick="goToStep('goals')">
+      <span class="nav-icon">🎯</span> Мои цели
     </div>
-
-    <div class="card">
-      <h2>4. Заказы</h2>
-      <div class="grid">
-        <div>
-          <label>Новые</label>
-          <input id="newOrders" type="number" min="0" />
-        </div>
-        <div>
-          <label>В работе</label>
-          <input id="workOrders" type="number" min="0" />
-        </div>
-        <div>
-          <label>Готовые</label>
-          <input id="readyOrders" type="number" min="0" />
-        </div>
-        <div>
-          <label>Выданные</label>
-          <input id="doneOrders" type="number" min="0" />
-        </div>
-        <div>
-          <label>Ждём запчасть</label>
-          <input id="waitParts" type="number" min="0" />
-        </div>
-        <div>
-          <label>Средний чек автоматически</label>
-          <input id="averageCheck" type="text" readonly />
-        </div>
-      </div>
+    <div class="nav-item" onclick="goToStep('tools')">
+      <span class="nav-icon">🛠</span> Инструменты
     </div>
-
-    <div class="card">
-      <h2>5. Проблемы и причина</h2>
-      <div class="grid">
-        <div>
-          <label>Главная проблема</label>
-          <select id="mainProblem">
-            <option>Мало клиентов</option>
-            <option>Низкий средний чек</option>
-            <option>Дорогие запчасти</option>
-            <option>Много возвратов</option>
-            <option>Зависшие заказы</option>
-            <option>Сотрудники косячат</option>
-            <option>Нет проблемы</option>
-          </select>
-        </div>
-        <div>
-          <label>Кто ответственный</label>
-          <input id="responsible" type="text" placeholder="Имя" />
-        </div>
-      </div>
-      <br />
-      <label>Описание проблемы</label>
-      <textarea id="problemText" placeholder="Что конкретно произошло?"></textarea>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="progress-ring" id="progress-text">Заполнено 0 из 83</div>
+    <div class="progress-bar-wrap">
+      <div class="progress-bar-fill" id="progress-fill" style="width:0%"></div>
     </div>
+  </div>
+</div>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
 
-    <div class="card">
-      <h2>6. Решение</h2>
-      <label>Что делаем, чтобы исправить</label>
-      <textarea id="actionText" placeholder="Например: поднять цены на дисплеи, прозвонить старых клиентов, проверить зависшие заказы"></textarea>
-      <div class="grid" style="margin-top:12px;">
-        <div>
-          <label>Срок</label>
-          <input id="deadline" type="text" placeholder="Например: завтра до 18:00" />
-        </div>
-        <div>
-          <label>Ожидаемый результат в деньгах</label>
-          <input id="expectedMoney" type="number" min="0" placeholder="Например: 15000" />
-        </div>
-      </div>
+<!-- MAIN -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Меню">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="topbar-title" id="topbar-title">📋 Онбординг</div>
     </div>
-
-    <div class="actions">
-      <button class="primary" onclick="generateReport()">Сформировать отчёт</button>
-      <button class="dark" onclick="copyReport()">Скопировать отчёт</button>
-      <button class="danger" onclick="clearForm()">Очистить</button>
-    </div>
-
-    <div class="card">
-      <h2>Готовый текст для отправки</h2>
-      <div id="report" class="result-box">Нажми “Сформировать отчёт”.</div>
-      <div class="mini">Этот текст отправляй наставнику. По нему можно быстро понять рост, убыток и слабое место.</div>
+    <div class="topbar-actions">
+      <button class="btn btn-ghost btn-sm" onclick="saveData()">💾 Сохранить</button>
+      <button class="btn btn-primary btn-sm" onclick="exportPDF()">⬇ Скачать PDF</button>
     </div>
   </div>
 
-  <script>
-    const fields = [
-      'date', 'period', 'revenue', 'cost', 'expenses', 'prevRevenue', 'prevProfit',
-      'newOrders', 'workOrders', 'readyOrders', 'doneOrders', 'waitParts',
-      'mainProblem', 'responsible', 'problemText', 'actionText', 'deadline', 'expectedMoney'
+  <!-- CONTENT AREA -->
+  <div class="content">
+
+  <!-- ===== STEP: ONBOARDING ===== -->
+  <div class="step active" id="step-onboarding">
+
+    <div class="hero">
+      <div class="hero-eyebrow">Бизнес-клуб НОМАДС</div>
+      <div class="hero-title">Диагностика вашего бизнеса</div>
+      <div class="hero-desc">Оцените бизнес по 6 направлениям, найдите точки роста и поставьте цели на работу в клубе. Это займёт около 20–30 минут.</div>
+      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+        <div class="badge badge-yellow">📊 83 критерия</div>
+        <div class="badge badge-yellow">6 направлений</div>
+        <div class="badge badge-yellow">PDF-резюме</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">📋 Общая информация</div>
+      <div class="card-sub">Расскажите о себе и своём бизнесе</div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Имя и фамилия</label>
+          <input class="form-input" id="name" placeholder="Иван Иванов" oninput="saveField()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Название компании / проекта</label>
+          <input class="form-input" id="company" placeholder="ООО «Ромашка»" oninput="saveField()">
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Сфера деятельности</label>
+          <input class="form-input" id="industry" placeholder="Например: IT, ресторан, строительство" oninput="saveField()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Год основания</label>
+          <input class="form-input" id="founded" placeholder="2020" type="number" oninput="saveField()">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Стадия бизнеса</label>
+        <select class="form-select" id="stage" onchange="saveField()">
+          <option value="">Выбрать...</option>
+          <option>Идея</option>
+          <option>Запуск (до 1 года)</option>
+          <option>Ранний рост (1–3 года)</option>
+          <option>Рост (3–7 лет)</option>
+          <option>Зрелость (7+ лет)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Главная боль / проблема прямо сейчас</label>
+        <textarea class="form-textarea" id="pain" placeholder="Опишите главную проблему, которую хотите решить..." oninput="saveField()"></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">💰 Ключевые финансовые показатели</div>
+      <div class="card-sub">Средние значения за последние 3 месяца</div>
+
+      <div class="fin-row">
+        <div class="fin-item">
+          <label>Ежемесячная выручка (₽)</label>
+          <input type="number" id="revenue" placeholder="0" oninput="calcFinance()">
+        </div>
+        <div class="fin-item">
+          <label>Ежемесячные расходы (₽)</label>
+          <input type="number" id="expenses" placeholder="0" oninput="calcFinance()">
+        </div>
+        <div class="fin-item">
+          <label>Чистая прибыль (₽) — авто</label>
+          <div class="fin-auto" id="profit">0</div>
+        </div>
+        <div class="fin-item">
+          <label>Маржинальность (%) — авто</label>
+          <div class="fin-auto" id="margin">—</div>
+        </div>
+        <div class="fin-item">
+          <label>Средний чек (₽)</label>
+          <input type="number" id="avgcheck" placeholder="0" oninput="saveField()">
+        </div>
+        <div class="fin-item">
+          <label>Активных клиентов</label>
+          <input type="number" id="clients" placeholder="0" oninput="saveField()">
+        </div>
+        <div class="fin-item">
+          <label>Новых клиентов / мес</label>
+          <input type="number" id="newclients" placeholder="0" oninput="saveField()">
+        </div>
+        <div class="fin-item">
+          <label>Сотрудников (включая вас)</label>
+          <input type="number" id="employees" placeholder="0" oninput="saveField()">
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">👥 Ключевые люди в команде</div>
+      <div class="card-sub">Укажите ключевых людей и роли, которых не хватает</div>
+      <div class="form-group">
+        <label class="form-label">Ключевые люди в команде (имена, роли)</label>
+        <textarea class="form-textarea" id="team" placeholder="Например: Алексей — коммерческий директор, Мария — бухгалтер..." oninput="saveField()"></textarea>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+      <button class="btn btn-primary" onclick="goToStep('owner')">Далее: Собственник →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP: OWNER ===== -->
+  <div class="step" id="step-owner">
+    <div class="card">
+      <div class="section-head">
+        <div class="section-emoji">👤</div>
+        <div>
+          <div class="section-label">Собственник</div>
+          <div class="section-meta">Ваша роль, компетенции и ограничивающие паттерны</div>
+        </div>
+        <div class="section-score-badge">
+          <div class="score-num" id="score-owner-display">—</div>
+          <div class="score-lbl">из 5</div>
+        </div>
+      </div>
+
+      <div class="card-title" style="margin-bottom:12px;">Ваша роль в бизнесе</div>
+      <div class="chip-grid" id="roles-chips"></div>
+
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:4px;">Фокус деятельности <span style="color:var(--text3);font-size:11px;font-weight:400;">(выберите до 3)</span></div>
+      <div class="focus-counter">Выбрано: <span class="focus-count" id="focus-count">0</span> / 3</div>
+      <div class="chip-grid" id="focus-chips"></div>
+
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:12px;">Компетенции собственника</div>
+      <div id="owner-scores"></div>
+
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:12px;">Ограничивающие паттерны</div>
+      <div class="card-sub" style="margin-bottom:14px;">Отметьте те, которые узнаёте в себе</div>
+      <div id="patterns"></div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="goToStep('onboarding')">← Назад</button>
+      <button class="btn btn-primary" onclick="goToStep('marketing')">Далее: Маркетинг →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP: MARKETING ===== -->
+  <div class="step" id="step-marketing">
+    <div class="card">
+      <div class="section-head">
+        <div class="section-emoji">📣</div>
+        <div>
+          <div class="section-label">Маркетинг</div>
+          <div class="section-meta">Трафик, упаковка, аналитика</div>
+        </div>
+        <div class="section-score-badge">
+          <div class="score-num" id="score-marketing-display">—</div>
+          <div class="score-lbl">из 5</div>
+        </div>
+      </div>
+      <div id="marketing-scores"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="goToStep('owner')">← Назад</button>
+      <button class="btn btn-primary" onclick="goToStep('sales')">Далее: Продажи →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP: SALES ===== -->
+  <div class="step" id="step-sales">
+    <div class="card">
+      <div class="section-head">
+        <div class="section-emoji">💼</div>
+        <div>
+          <div class="section-label">Продажи</div>
+          <div class="section-meta">Процессы, команда, повторные покупки</div>
+        </div>
+        <div class="section-score-badge">
+          <div class="score-num" id="score-sales-display">—</div>
+          <div class="score-lbl">из 5</div>
+        </div>
+      </div>
+      <div id="sales-scores"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="goToStep('marketing')">← Назад</button>
+      <button class="btn btn-primary" onclick="goToStep('product')">Далее: Продукт →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP: PRODUCT ===== -->
+  <div class="step" id="step-product">
+    <div class="card">
+      <div class="section-head">
+        <div class="section-emoji">📦</div>
+        <div>
+          <div class="section-label">Продукт</div>
+          <div class="section-meta">Ценность, качество, развитие</div>
+        </div>
+        <div class="section-score-badge">
+          <div class="score-num" id="score-product-display">—</div>
+          <div class="score-lbl">из 5</div>
+        </div>
+      </div>
+      <div id="product-scores"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="goToStep('sales')">← Назад</button>
+      <button class="btn btn-primary" onclick="goToStep('finance')">Далее: Финансы →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP: FINANCE ===== -->
+  <div class="step" id="step-finance">
+    <div class="card">
+      <div class="section-head">
+        <div class="section-emoji">💰</div>
+        <div>
+          <div class="section-label">Финансы</div>
+          <div class="section-meta">Учёт, планирование, контроль</div>
+        </div>
+        <div class="section-score-badge">
+          <div class="score-num" id="score-finance-display">—</div>
+          <div class="score-lbl">из 5</div>
+        </div>
+      </div>
+      <div id="finance-scores"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="goToStep('product')">← Назад</button>
+      <button class="btn btn-primary" onclick="goToStep('management')">Далее: Управление →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP: MANAGEMENT ===== -->
+  <div class="step" id="step-management">
+    <div class="card">
+      <div class="section-head">
+        <div class="section-emoji">⚙️</div>
+        <div>
+          <div class="section-label">Управление</div>
+          <div class="section-meta">Операционка, HR, стратегия</div>
+        </div>
+        <div class="section-score-badge">
+          <div class="score-num" id="score-management-display">—</div>
+          <div class="score-lbl">из 5</div>
+        </div>
+      </div>
+      <div id="management-scores"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="goToStep('finance')">← Назад</button>
+      <button class="btn btn-primary" onclick="goToStep('bizmodel')">Далее: Бизнес-модель →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP: BIZ MODEL ===== -->
+  <div class="step" id="step-bizmodel">
+    <div class="card">
+      <div class="section-head">
+        <div class="section-emoji">🧩</div>
+        <div>
+          <div class="section-label">Бизнес-модель</div>
+          <div class="section-meta">Монетизация, стратегия, масштабируемость</div>
+        </div>
+        <div class="section-score-badge">
+          <div class="score-num" id="score-bizmodel-display">—</div>
+          <div class="score-lbl">из 5</div>
+        </div>
+      </div>
+      <div id="bizmodel-scores"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="goToStep('management')">← Назад</button>
+      <button class="btn btn-primary" onclick="goToStep('results')">Посмотреть результаты →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP: RESULTS ===== -->
+  <div class="step" id="step-results">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:20px;">📊 Итоговая диагностика</div>
+
+      <div class="overview-grid" id="overview-grid"></div>
+
+      <div class="radar-wrap">
+        <svg class="radar-svg" id="radar-svg" width="360" height="320" viewBox="0 0 360 320"></svg>
+      </div>
+
+      <div class="result-grid" id="result-grid"></div>
+
+      <div class="card" style="background:var(--surface2);margin-top:0;">
+        <div class="card-title" style="margin-bottom:16px;">🔴 3 слабейших направления</div>
+        <div id="weakest-list"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="goToStep('bizmodel')">← Назад</button>
+      <button class="btn btn-primary" onclick="goToStep('goals')">Поставить цели →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP: GOALS ===== -->
+  <div class="step" id="step-goals">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:6px;">🎯 Мои цели в клубе НОМАДС</div>
+      <div class="card-sub">Запишите конкретные цели на период участия в клубе</div>
+
+      <table class="goals-table" id="goals-table">
+        <thead>
+          <tr>
+            <th style="width:120px;">Приоритет</th>
+            <th>Направление</th>
+            <th>Текущая ситуация</th>
+            <th>Цель</th>
+            <th>Конкретные действия</th>
+            <th>Срок</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><select class="tool-status-sel" style="width:100%;" id="goal-dir-1"><option value="">—</option><option>👤 Собственник</option><option>📣 Маркетинг</option><option>💼 Продажи</option><option>📦 Продукт</option><option>💰 Финансы</option><option>⚙️ Управление</option><option>🧩 Бизнес-модель</option></select></td>
+            <td><input placeholder="Направление..."></td>
+            <td><input placeholder="Как сейчас..."></td>
+            <td><input placeholder="Что хочу достичь..."></td>
+            <td><input placeholder="Что буду делать..."></td>
+            <td><input placeholder="Дата..."></td>
+          </tr>
+          <tr>
+            <td><select class="tool-status-sel" style="width:100%;" id="goal-dir-2"><option value="">—</option><option>👤 Собственник</option><option>📣 Маркетинг</option><option>💼 Продажи</option><option>📦 Продукт</option><option>💰 Финансы</option><option>⚙️ Управление</option><option>🧩 Бизнес-модель</option></select></td>
+            <td><input placeholder="Направление..."></td>
+            <td><input placeholder="Как сейчас..."></td>
+            <td><input placeholder="Что хочу достичь..."></td>
+            <td><input placeholder="Что буду делать..."></td>
+            <td><input placeholder="Дата..."></td>
+          </tr>
+          <tr>
+            <td><select class="tool-status-sel" style="width:100%;" id="goal-dir-3"><option value="">—</option><option>👤 Собственник</option><option>📣 Маркетинг</option><option>💼 Продажи</option><option>📦 Продукт</option><option>💰 Финансы</option><option>⚙️ Управление</option><option>🧩 Бизнес-модель</option></select></td>
+            <td><input placeholder="Направление..."></td>
+            <td><input placeholder="Как сейчас..."></td>
+            <td><input placeholder="Что хочу достичь..."></td>
+            <td><input placeholder="Что буду делать..."></td>
+            <td><input placeholder="Дата..."></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="goToStep('results')">← Назад</button>
+      <button class="btn btn-primary" onclick="goToStep('tools')">Далее: Инструменты →</button>
+    </div>
+  </div>
+
+  <!-- ===== STEP: TOOLS ===== -->
+  <div class="step" id="step-tools">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:6px;">🛠 Инструменты для роста</div>
+      <div class="card-sub">Отметьте статус внедрения каждого инструмента</div>
+      <div id="tools-list"></div>
+    </div>
+
+    <div class="card" style="background:var(--surface2);">
+      <div class="card-title" style="margin-bottom:16px;">✅ Следующий шаг</div>
+      <p style="color:var(--text2);font-size:14px;line-height:1.7;">Ваша диагностика готова. Скачайте PDF-резюме и обсудите результаты с ментором НОМАДС на первой встрече.</p>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="exportPDF()">⬇ Скачать PDF-резюме</button>
+        <button class="btn btn-ghost" onclick="goToStep('results')">📊 Посмотреть результаты</button>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:flex-start;margin-top:8px;">
+      <button class="btn btn-ghost" onclick="goToStep('goals')">← Назад</button>
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+</div><!-- /shell -->
+
+<div class="toast" id="toast">✅ Сохранено</div>
+
+<script>
+// ===================== DATA =====================
+const SECTIONS = {
+  marketing: {
+    label: '📣 МАРКЕТИНГ',
+    blocks: [
+      {
+        title: 'ТРАФИК И КАНАЛЫ',
+        items: [
+          { text: 'Работает минимум 2 независимых канала привлечения', hint: '3 = 2 канала, один стабильный / 4 = оба дают плановые лиды ежемесячно' },
+          { text: 'Есть плановый бюджет на маркетинг, а не остаточный', hint: '3 = бюджет есть, пересматривается хаотично / 4 = фиксированный % от выручки' },
+          { text: 'Ведётся контент-маркетинг по контент-плану', hint: '3 = посты выходят нерегулярно / 4 = план на месяц вперёд, выход 3+ раза/нед' },
+          { text: 'Настроен ретаргетинг и работа с тёплой аудиторией', hint: '3 = ретаргетинг настроен, но не оптимизируется / 4 = сегменты, A/B, ROAS >200%' },
+          { text: 'Ежемесячно тестируются новые гипотезы привлечения', hint: '3 = тесты бывают раз в квартал / 4 = каждый месяц 2+ новых гипотезы с выводами' },
+        ]
+      },
+      {
+        title: 'ПОЗИЦИОНИРОВАНИЕ И УПАКОВКА',
+        items: [
+          { text: 'Есть чёткое УТП и оффер, понятный клиенту за 30 секунд', hint: '3 = оффер есть, но неоднозначный / 4 = оффер проверен на клиентах' },
+          { text: 'Описаны целевые аудитории с болями и мотивами', hint: '3 = знаем кто клиент, но портрет не записан / 4 = есть 2+ портрета письменно' },
+          { text: 'Есть продуктовая матрица: front-end, основной, premium', hint: '3 = 2 продукта, логика случайна / 4 = линейка осознанная, есть up-sell' },
+          { text: 'Упаковка (сайт, соцсети) однозначно транслирует оффер', hint: '3 = сайт есть, но посетители путаются / 4 = конверсия >3% с холодного трафика' },
+          { text: 'Есть единый фирменный стиль: лого, цвета, шрифты', hint: '3 = лого есть, цвета разные везде / 4 = брендбук применяется стабильно' },
+        ]
+      },
+      {
+        title: 'АНАЛИТИКА',
+        items: [
+          { text: 'Отслеживаются источники всех заявок', hint: '3 = источник знаем у 50% лидов / 4 = UTM-метки на всех каналах, 90%+ размечено' },
+          { text: 'Считается CAC — стоимость привлечения клиента по каналу', hint: '3 = CAC считаем раз в квартал приблизительно / 4 = еженедельно по каждому каналу' },
+          { text: 'Ведётся план/факт по лидам и конверсии еженедельно', hint: '3 = данные есть, смотрим редко / 4 = еженедельный разбор с командой по цифрам' },
+          { text: 'Настроена веб-аналитика: Яндекс Метрика или GA4', hint: '3 = метрика есть, цели не настроены / 4 = воронка в метрике, смотрим ежемесячно' },
+          { text: 'Маркетинговые решения принимаются на основе данных', hint: '3 = иногда смотрим данные / 4 = все бюджетные решения обоснованы цифрами' },
+        ]
+      }
+    ]
+  },
+  sales: {
+    label: '💼 ПРОДАЖИ',
+    blocks: [
+      {
+        title: 'ПРОЦЕССЫ И CRM',
+        items: [
+          { text: 'Внедрена CRM — все сделки ведутся в ней', hint: '3 = CRM есть, заполняется не всегда / 4 = все сделки в CRM, нет пропусков' },
+          { text: 'Описана воронка продаж с этапами и конверсиями', hint: '3 = этапы есть, конверсии не считаем / 4 = конверсия по каждому этапу, помесячно' },
+          { text: 'Скорость ответа на входящий лид — до 15 минут', hint: '3 = отвечаем в течение часа / 4 = 90%+ лидов обрабатываются до 15 минут' },
+          { text: 'Ведётся запись звонков и контроль переписок', hint: '3 = звонки пишутся, слушаем редко / 4 = 10+ звонков/нед проверяет РОП' },
+          { text: 'Есть план продаж с декомпозицией по менеджерам', hint: '3 = общий план есть / 4 = план до менеджера, недели и дня' },
+        ]
+      },
+      {
+        title: 'ПОВТОРНЫЕ ПРОДАЖИ',
+        items: [
+          { text: 'Ведётся база клиентов с историей покупок', hint: '3 = база есть в таблице / 4 = база в CRM с тегами, сегментами, историей' },
+          { text: 'Доля повторных покупок — 30%+ от выручки', hint: '3 = повторные есть, долю не считаем / 4 = 30%+, растёт каждый квартал' },
+          { text: 'Считается LTV — пожизненная ценность клиента', hint: '3 = знаем приблизительно / 4 = LTV считается по сегментам, влияет на CAC' },
+          { text: 'Есть программа лояльности или реферальная программа', hint: '3 = скидки постоянным есть / 4 = формализованная программа с механикой' },
+          { text: 'Проводятся реактивационные кампании по спящим клиентам', hint: '3 = иногда звоним старым клиентам / 4 = ежеквартальная кампания с конверсией' },
+        ]
+      },
+      {
+        title: 'КОМАНДА И ИНСТРУМЕНТЫ',
+        items: [
+          { text: 'Продажи не завязаны только на собственнике', hint: '3 = есть 1 менеджер, продаёт нестабильно / 4 = 2+ менеджера с планом' },
+          { text: 'У менеджеров есть КП, прайс, скрипты, отработка возражений', hint: '3 = скрипт есть, но устаревший / 4 = скрипты актуальны, обновляются раз в мес' },
+          { text: 'Есть РОП или ответственный за результат отдела', hint: '3 = РОП есть, контролирует нерегулярно / 4 = РОП ведёт ежедневный контроль' },
+          { text: 'Мотивация привязана к плану: оклад + переменная часть', hint: '3 = % от продаж есть, план нечёткий / 4 = план + бонусы за перевыполнение' },
+          { text: 'Проводится регулярное обучение и разбор звонков', hint: '3 = разбор раз в месяц / 4 = еженедельно, есть база лучших звонков' },
+        ]
+      }
+    ]
+  },
+  product: {
+    label: '📦 ПРОДУКТ',
+    blocks: [
+      {
+        title: 'ЦЕННОСТЬ И ПОЗИЦИОНИРОВАНИЕ',
+        items: [
+          { text: 'Продукт решает конкретную боль — клиент получает измеримый результат', hint: '3 = клиенты довольны, результат сложно измерить / 4 = есть кейсы с цифрами' },
+          { text: 'Есть ярко выраженное отличие от конкурентов', hint: '3 = отличие есть, но размытое / 4 = отличие сформулировано и проверено' },
+          { text: 'Продукт генерирует сарафанное радио без стимулирования', hint: '3 = рекомендации бывают / 4 = 20%+ новых клиентов от рекомендаций' },
+          { text: 'Регулярно поступают положительные отзывы', hint: '3 = отзывы есть, собираем хаотично / 4 = система сбора, 10+ отзывов/мес' },
+          { text: 'Цена соответствует ценности и обоснована рынком', hint: '3 = цена «как у всех» / 4 = цена обоснована через ценность, пересматривается' },
+        ]
+      },
+      {
+        title: 'КАЧЕСТВО И СТАНДАРТЫ',
+        items: [
+          { text: 'Описан стандарт оказания услуги / производства продукта', hint: '3 = есть устный стандарт / 4 = письменный чек-лист, обновляется раз в квартал' },
+          { text: 'Контроль качества встроен в процесс, а не только на выходе', hint: '3 = проверяем на финале / 4 = контрольные точки на каждом этапе' },
+          { text: 'Доля рекламаций и возвратов — менее 5%', hint: '3 = <10%, знаем приблизительно / 4 = <5%, считаем ежемесячно' },
+          { text: 'Регулярно проводится сбор обратной связи от клиентов', hint: '3 = опрашиваем иногда / 4 = NPS ежеквартально, результаты влияют на продукт' },
+          { text: 'Есть чёткая процедура работы с рекламациями', hint: '3 = разбираем индивидуально / 4 = регламент: сроки, ответственный, компенсация' },
+        ]
+      },
+      {
+        title: 'РАЗВИТИЕ ПРОДУКТА',
+        items: [
+          { text: 'Анализ конкурентов проводится минимум раз в квартал', hint: '3 = мониторим иногда / 4 = квартальный отчёт по 5+ конкурентам' },
+          { text: 'Обратная связь клиентов влияет на развитие продукта', hint: '3 = слушаем, но редко внедряем / 4 = есть бэклог идей от клиентов, внедряем' },
+          { text: 'Есть роадмап / план развития продукта на 3–12 месяцев', hint: '3 = есть список улучшений / 4 = роадмап с приоритетами и сроками' },
+          { text: 'Описан Customer Journey Map — путь клиента', hint: '3 = понимаем путь в голове / 4 = CJM нарисован, есть точки улучшения' },
+          { text: 'Тестируются новые форматы и гипотезы продукта', hint: '3 = тесты бывают / 4 = ежеквартально 1+ пилот с анализом результата' },
+        ]
+      }
+    ]
+  },
+  finance: {
+    label: '💰 ФИНАНСЫ',
+    blocks: [
+      {
+        title: 'УЧЁТ И ОТЧЁТНОСТЬ',
+        items: [
+          { text: 'Ведётся управленческий учёт: ДДС и P&L', hint: '3 = ДДС ведётся, P&L нет / 4 = оба отчёта, обновляются еженедельно' },
+          { text: 'Личные и корпоративные финансы разделены', hint: '3 = счета разные, но деньги перемешиваем / 4 = чёткие правила перевода дивидендов' },
+          { text: 'Считается маржинальность по продуктам и направлениям', hint: '3 = маржа общая по бизнесу / 4 = маржа по каждому продукту/направлению' },
+          { text: 'Известна точка безубыточности', hint: '3 = знаем примерно / 4 = рассчитана точно, пересматривается при изменениях' },
+          { text: 'Финансовые отчёты разбираются регулярно — раз в месяц', hint: '3 = смотрим раз в квартал / 4 = ежемесячный разбор с выводами и решениями' },
+        ]
+      },
+      {
+        title: 'ПЛАНИРОВАНИЕ И БЮДЖЕТ',
+        items: [
+          { text: 'Есть финансовый план (бюджет) на год с разбивкой по месяцам', hint: '3 = план на квартал / 4 = годовой бюджет с детализацией по месяцам и статьям' },
+          { text: 'Ведётся платёжный календарь', hint: '3 = знаем крупные платежи / 4 = все поступления и платежи на 4+ недели вперёд' },
+          { text: 'Есть финансовый резерв на 1–3 месяца операционки', hint: '3 = есть подушка на 2–4 недели / 4 = резерв 1–3 месяца, неприкосновенный' },
+          { text: 'Рассчитана юнит-экономика бизнеса', hint: '3 = знаем маржу на продукт приблизительно / 4 = юнит-экономика с CAC и LTV' },
+          { text: 'Есть дивидендная политика — порядок выплаты себе', hint: '3 = берём когда есть деньги / 4 = фиксированная дата и % от прибыли' },
+        ]
+      },
+      {
+        title: 'КОНТРОЛЬ И РИСКИ',
+        items: [
+          { text: 'Расходы контролируются по статьям бюджета', hint: '3 = смотрим суммарно / 4 = факт vs план по каждой статье, отклонения >10% разбираем' },
+          { text: 'Нет просрочек по налогам и обязательным платежам', hint: '3 = иногда платим с задержкой / 4 = налоговый календарь, 0 просрочек за год' },
+          { text: 'Дебиторская задолженность контролируется', hint: '3 = знаем кто должен, контролируем слабо / 4 = реестр дебиторов, просрочка <10%' },
+          { text: 'Система ценообразования актуальна и пересматривается', hint: '3 = цены не меняли 1+ год / 4 = ежегодный пересмотр с анализом рынка' },
+          { text: 'Оцениваются финансовые риски и есть план Б', hint: '3 = риски понимаем / 4 = топ-3 риска описаны, есть сценарии реагирования' },
+        ]
+      }
+    ]
+  },
+  management: {
+    label: '⚙️ УПРАВЛЕНИЕ',
+    blocks: [
+      {
+        title: 'ОПЕРАЦИОННОЕ УПРАВЛЕНИЕ',
+        items: [
+          { text: 'Проводятся регулярные планёрки с повесткой и протоколом', hint: '3 = планёрки есть, протоколов нет / 4 = повестка заранее, протокол с задачами' },
+          { text: 'Задачи ставятся и контролируются письменно в таск-трекере', hint: '3 = мессенджер / почта / 4 = таск-трекер, у каждой задачи срок и ответственный' },
+          { text: 'Описаны ключевые бизнес-процессы и регламенты', hint: '3 = 1–2 процесса описаны / 4 = топ-5 процессов в регламентах, новый сотрудник разберётся' },
+          { text: 'Ведётся дашборд ключевых показателей', hint: '3 = данные есть, смотрим по запросу / 4 = дашборд обновляется еженедельно' },
+          { text: 'Бизнес работает без вас минимум 2 недели подряд', hint: '3 = работает с созвонами раз в день / 4 = работает полностью автономно 2+ недели' },
+        ]
+      },
+      {
+        title: 'КОМАНДА И HR',
+        items: [
+          { text: 'Есть системный процесс найма: вакансии, воронка, оценка', hint: '3 = нанимаем через знакомых / 4 = описание вакансии, 3+ источника, тест-задание' },
+          { text: 'Есть структурированная адаптация — онбординг', hint: '3 = объясняем устно первый день / 4 = план онбординга на 2–4 недели' },
+          { text: 'Мотивация ключевых сотрудников привязана к KPI', hint: '3 = % от продаж у менеджеров / 4 = KPI у каждой ключевой роли, пересматривается' },
+          { text: 'Проводятся регулярные 1-on-1 и обратная связь', hint: '3 = разговариваем когда есть проблема / 4 = ежемесячные 1-on-1 у каждого ключевого' },
+          { text: 'Команда стабильна — нет текучки ключевых людей', hint: '3 = 1–2 ухода за год / 4 = 0 уходов ключевых за последние 12 месяцев' },
+        ]
+      },
+      {
+        title: 'СТРАТЕГИЯ И ЦЕЛИ',
+        items: [
+          { text: 'Есть годовая цель с декомпозицией по кварталам', hint: '3 = цель есть, декомпозиция в голове / 4 = письменно, доведено до команды' },
+          { text: 'Проводятся стратегические сессии минимум раз в год', hint: '3 = обсуждаем стратегию неформально / 4 = ежегодная сессия с фасилитатором' },
+          { text: 'Есть оргструктура с закреплёнными зонами ответственности', hint: '3 = структура понятна устно / 4 = схема нарисована, зоны ответственности письменно' },
+          { text: 'Стратегия доведена до ключевых сотрудников', hint: '3 = рассказали один раз / 4 = квартальная сверка, команда понимает приоритеты' },
+          { text: 'Миссия и ценности сформулированы и живут в команде', hint: '3 = ценности есть, на них не ссылаемся / 4 = ценности используются в найме и оценке' },
+        ]
+      }
+    ]
+  },
+  bizmodel: {
+    label: '🧩 БИЗ-МОДЕЛЬ',
+    blocks: [
+      {
+        title: 'МОНЕТИЗАЦИЯ',
+        items: [
+          { text: 'Модель монетизации протестирована и доказана практикой', hint: '3 = модель работает, не оптимизировалась / 4 = тестировались альтернативы' },
+          { text: 'Есть несколько источников дохода', hint: '3 = 2 продукта / 4 = 3+ источника, ни один не >60% выручки' },
+          { text: 'Структура расходов оптимизирована', hint: '3 = расходы под контролем / 4 = регулярный анализ, последний пересмотр <6 мес' },
+          { text: 'Рассмотрены альтернативные модели: подписка, лицензия, freemium', hint: '3 = знаем про другие модели / 4 = проверили 1–2 альтернативы на практике' },
+          { text: 'Маржинальность соответствует рыночным бенчмаркам', hint: '3 = маржа «нормальная» / 4 = сравнивали с 3+ компаниями отрасли' },
+        ]
+      },
+      {
+        title: 'МАСШТАБИРУЕМОСТЬ',
+        items: [
+          { text: 'Бизнес-модель масштабируется без кратного роста затрат', hint: '3 = затраты растут пропорционально / 4 = ×2 выручки = <×1.5 затрат' },
+          { text: 'Есть план выхода на новые рынки или сегменты', hint: '3 = думаем об этом / 4 = план с шагами, сроками и ресурсами' },
+          { text: 'Ключевые партнёрства и ресурсы определены', hint: '3 = партнёры есть / 4 = партнёрства формализованы, риск ухода партнёра закрыт' },
+          { text: 'Технологии и автоматизация встроены в модель', hint: '3 = используем базовые инструменты / 4 = автоматизация снижает себестоимость' },
+          { text: 'Бизнес-модель проверена на актуальность за последний год', hint: '3 = проверяли 1–2 года назад / 4 = ежегодная стратегическая сессия по модели' },
+        ]
+      },
+      {
+        title: 'ЦЕННОСТНОЕ ПРЕДЛОЖЕНИЕ',
+        items: [
+          { text: 'Ценностное предложение сформулировано по Jobs-To-Be-Done', hint: '3 = оффер есть, про «работу» не думали / 4 = JTBD для каждого сегмента' },
+          { text: 'Есть чёткое конкурентное позиционирование', hint: '3 = знаем отличия / 4 = позиционирование зафиксировано, проверено на клиентах' },
+          { text: 'Сегменты клиентов описаны детально, не только демография', hint: '3 = знаем кто клиент / 4 = боли, мотивы, контекст решения письменно по каждому' },
+          { text: 'Каналы дистрибуции выбраны осознанно', hint: '3 = каналы сложились исторически / 4 = каналы выбраны под ЦА, тестировались' },
+          { text: 'Есть барьеры входа — что защищает ваш бизнес', hint: '3 = есть 1 барьер (база/бренд) / 4 = 2+ барьера, сложно скопировать за год' },
+        ]
+      }
+    ]
+  }
+};
+
+const OWNER_COMPETENCIES = [
+  { text: 'Управление временем', hint: '3 = время есть, но часто уходит на чужие задачи / 4 = блок-план на неделю, 80% соблюдается' },
+  { text: 'Делегирование', hint: '3 = делегирую задачи, но проверяю каждый шаг / 4 = делегирую результат, не процесс' },
+  { text: 'Стратегическое мышление', hint: '3 = есть цель на год, в операционке >60% времени / 4 = стратегия занимает 3+ часа в неделю' },
+  { text: 'Энергия и ресурс', hint: '3 = работаю, но устаю к концу недели / 4 = стабильная энергия, есть система восстановления' },
+  { text: 'Принятие решений', hint: '3 = решения принимаю, иногда откладываю / 4 = есть критерии решений, редко сожалею' },
+  { text: 'Работа с командой', hint: '3 = даю обратную связь когда спрашивают / 4 = регулярные 1-on-1, конфликты решаю прямо' },
+  { text: 'Финансовая грамотность', hint: '3 = читаю отчёты, но глубоко не копаю / 4 = самостоятельно строю P&L и анализирую' },
+  { text: 'Независимость бизнеса', hint: '3 = работает при ежедневных созвонах / 4 = 2 недели без меня — всё нормально' },
+];
+
+const PATTERNS = [
+  { title: 'Страх делегировать — «лучше сделаю сам»', desc: 'Избегаете передавать задачи, не доверяете или боитесь потерять контроль' },
+  { title: 'Избегание конфликтов — «лишь бы не ругаться»', desc: 'Откладываете сложные разговоры, соглашаетесь там где нужно настоять' },
+  { title: 'Синдром самозванца — «я недостаточно хорош»', desc: 'Ощущение, что не заслуживаете успеха или не готовы к следующему уровню' },
+  { title: 'Операционная ловушка — «без меня всё развалится»', desc: 'Не можете физически отпустить оперативку, даже осознавая что это мешает расти' },
+  { title: 'Перфекционизм — «не готово = нельзя запускать»', desc: 'Страх выпустить несовершенный продукт блокирует движение вперёд' },
+  { title: 'Избегание финансов — «цифры не моё»', desc: 'Интуитивно избегаете глубокого погружения в финансовую картину бизнеса' },
+  { title: 'Реактивность — «тушу пожары вместо стратегии»', desc: 'День заполнен срочными задачами, на важное (но не срочное) времени нет' },
+  { title: 'Одиночество в решениях — «не с кем посоветоваться»', desc: 'Привычка принимать все ключевые решения в одиночку, без внешней экспертизы' },
+];
+
+const ROLES = ['Основатель', 'Сооснователь', 'Инвестор', 'Эксперт', 'Ментор', 'CEO', 'Руководитель проекта', 'Акционер', 'Другое'];
+const FOCUSES = [
+  '1. Управление компанией', '2. Меняю модель бизнеса', '3. Привлечение инвестиций',
+  '4. Поиск клиентов', '5. Поиск проектов', '6. Расширение продуктовой линейки',
+  '7. Поиск ключевых связей', '8. Построение команды', '9. Стратегическое развитие',
+  '10. Личные переговоры с крупными клиентами', '11. Диверсификация активов'
+];
+
+const TOOLS = {
+  '📣 МАРКЕТИНГ': [
+    { name: 'Лид-магнит', desc: 'Бесплатный контент для захвата контактов', prio: '🔴 Срочно' },
+    { name: 'Квиз / интерактивный лид', desc: 'Вовлекающий сбор заявок через вопросы', prio: '🔴 Срочно' },
+    { name: 'Посадочная страница', desc: 'Конвертирующий лендинг под конкретный оффер', prio: '🔴 Срочно' },
+    { name: 'Яндекс.Директ / РСЯ', desc: 'Платный поисковый и медийный трафик', prio: '🟡 Важно' },
+    { name: 'Таргетированная реклама', desc: 'VK Ads, Telegram Ads — реклама на ЦА', prio: '🟡 Важно' },
+    { name: 'Сквозная аналитика', desc: 'Путь клиента от клика до оплаты', prio: '🟡 Важно' },
+    { name: 'Чат-бот', desc: 'Автоматизация первичной обработки входящих', prio: '🟡 Важно' },
+    { name: 'Контент-план + SMM', desc: 'Системные публикации, а не хаотичные посты', prio: '🟡 Важно' },
+    { name: 'Email / Telegram рассылки', desc: 'Регулярная коммуникация с базой клиентов', prio: '🟢 Перспектива' },
+    { name: 'SEO-продвижение', desc: 'Органический трафик из поиска', prio: '🟢 Перспектива' },
+    { name: 'Партнёрский маркетинг', desc: 'Привлечение через партнёрские сети', prio: '🟢 Перспектива' },
+    { name: 'Видеомаркетинг / Reels', desc: 'Короткий видео-контент для охвата и доверия', prio: '🟢 Перспектива' },
+  ],
+  '💼 ПРОДАЖИ': [
+    { name: 'CRM-система', desc: 'AmoCRM, Битрикс24 — учёт всех сделок', prio: '🔴 Срочно' },
+    { name: 'Скрипты продаж', desc: 'Шаблоны разговора и работы с возражениями', prio: '🔴 Срочно' },
+    { name: 'Декомпозиция плана', desc: 'Годовой план → менеджер → неделя → день', prio: '🔴 Срочно' },
+    { name: 'KPI и мотивация ОП', desc: 'Переменная зарплата, привязанная к плану', prio: '🔴 Срочно' },
+    { name: 'IP-телефония + запись', desc: 'Контроль качества работы продавцов', prio: '🟡 Важно' },
+    { name: 'Коммерческое предложение', desc: 'Продающий документ для B2B', prio: '🟡 Важно' },
+    { name: 'Система работы с базой', desc: 'Процессы повторных продаж и реактивации', prio: '🟡 Важно' },
+    { name: 'РОП / управление ОП', desc: 'Системный руководитель отдела продаж', prio: '🟢 Перспектива' },
+    { name: 'Программа лояльности', desc: 'Бонусы и привилегии для постоянных клиентов', prio: '🟢 Перспектива' },
+  ],
+  '📦 ПРОДУКТ И СЕРВИС': [
+    { name: 'Стандарты оказания услуги', desc: 'Регламенты и чек-листы качества', prio: '🔴 Срочно' },
+    { name: 'NPS / опросы клиентов', desc: 'Регулярный замер лояльности', prio: '🟡 Важно' },
+    { name: 'Customer Journey Map', desc: 'Карта клиентского пути', prio: '🟡 Важно' },
+    { name: 'Процедура рекламаций', desc: 'Системная работа с жалобами', prio: '🟡 Важно' },
+    { name: 'Роадмап продукта', desc: 'План развития на 3–12 месяцев', prio: '🟢 Перспектива' },
+    { name: 'A/B-тестирование', desc: 'Проверка гипотез на продукте/услуге', prio: '🟢 Перспектива' },
+  ],
+  '💰 ФИНАНСЫ': [
+    { name: 'Отчёт ДДС', desc: 'Движение денег — контроль кэша и разрывов', prio: '🔴 Срочно' },
+    { name: 'Отчёт P&L', desc: 'Прибыли и убытки — реальная картина бизнеса', prio: '🔴 Срочно' },
+    { name: 'Платёжный календарь', desc: 'Планирование поступлений и платежей', prio: '🔴 Срочно' },
+    { name: 'Юнит-экономика', desc: 'Маржинальность на единицу продукта / клиента', prio: '🔴 Срочно' },
+    { name: 'Бюджетирование (год)', desc: 'Плановые доходы и расходы по месяцам', prio: '🟡 Важно' },
+    { name: 'Точка безубыточности', desc: 'Минимальный объём продаж для выхода в ноль', prio: '🟡 Важно' },
+    { name: 'Финансовая модель', desc: 'Сценарный прогноз при разных условиях', prio: '🟢 Перспектива' },
+    { name: 'Автоматизация учёта', desc: 'Интеграция с банком, CRM и кассой', prio: '🟢 Перспектива' },
+  ],
+  '⚙️ УПРАВЛЕНИЕ И HR': [
+    { name: 'Оргструктура', desc: 'Схема ролей и подчинения', prio: '🔴 Срочно' },
+    { name: 'Регулярный менеджмент', desc: 'Еженедельные планёрки с метриками и задачами', prio: '🔴 Срочно' },
+    { name: 'KPI и система мотивации', desc: 'Показатели эффективности для каждой роли', prio: '🔴 Срочно' },
+    { name: 'Таск-трекер', desc: 'YouGile, Kaiten, Notion — учёт задач', prio: '🟡 Важно' },
+    { name: 'Регламенты / SOP', desc: 'Описание повторяющихся бизнес-процессов', prio: '🟡 Важно' },
+    { name: 'Стратегическая сессия', desc: 'Ежегодное командное целеполагание', prio: '🟡 Важно' },
+    { name: 'Дашборд метрик', desc: 'Визуальный мониторинг ключевых показателей', prio: '🟡 Важно' },
+    { name: 'Система найма + онбординг', desc: 'Структурированный HR-процесс', prio: '🟢 Перспектива' },
+    { name: '1-on-1 встречи', desc: 'Регулярная обратная связь с командой', prio: '🟢 Перспектива' },
+  ],
+  '🧩 БИЗ-МОДЕЛЬ И СТРАТЕГИЯ': [
+    { name: 'Business Model Canvas', desc: 'Бизнес-модель на одной странице', prio: '🟡 Важно' },
+    { name: 'Value Proposition Canvas', desc: 'Глубокий анализ ценностного предложения', prio: '🟡 Важно' },
+    { name: 'SWOT / TOWS-анализ', desc: 'Стратегический анализ сильных сторон и угроз', prio: '🟡 Важно' },
+    { name: 'Анализ конкурентов', desc: 'Системный мониторинг конкурентной среды', prio: '🟡 Важно' },
+    { name: 'Jobs-To-Be-Done (JTBD)', desc: 'Понимание мотивов покупки', prio: '🟢 Перспектива' },
+    { name: 'Custdev / интервью', desc: 'Качественное исследование клиентов', prio: '🟢 Перспектива' },
+    { name: 'OKR-система', desc: 'Цели и ключевые результаты на квартал/год', prio: '🟢 Перспектива' },
+  ],
+};
+
+// ===================== STATE =====================
+let scores = {};    // e.g. scores['marketing_0_2'] = 4
+let patterns = [];  // indices
+let roles = [];
+let focuses = [];
+
+// ===================== INIT =====================
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  buildOwner();
+  buildScoreBlocks('marketing', 'marketing-scores');
+  buildScoreBlocks('sales', 'sales-scores');
+  buildScoreBlocks('product', 'product-scores');
+  buildScoreBlocks('finance', 'finance-scores');
+  buildScoreBlocks('management', 'management-scores');
+  buildScoreBlocks('bizmodel', 'bizmodel-scores');
+  buildTools();
+  buildResults();
+  updateProgress();
+  calcFinance();
+});
+
+// ===================== BUILD FUNCTIONS =====================
+function buildOwner() {
+  // Roles
+  const rWrap = document.getElementById('roles-chips');
+  ROLES.forEach((r, i) => {
+    const c = document.createElement('div');
+    c.className = 'chip' + (roles.includes(i) ? ' selected' : '');
+    c.textContent = r;
+    c.onclick = () => {
+      if (roles.includes(i)) roles = roles.filter(x => x !== i);
+      else roles.push(i);
+      c.classList.toggle('selected');
+      updateProgress();
+    };
+    rWrap.appendChild(c);
+  });
+
+  // Focuses
+  const fWrap = document.getElementById('focus-chips');
+  FOCUSES.forEach((f, i) => {
+    const c = document.createElement('div');
+    c.className = 'chip' + (focuses.includes(i) ? ' selected' : '');
+    c.textContent = f;
+    c.onclick = () => {
+      if (focuses.includes(i)) {
+        focuses = focuses.filter(x => x !== i);
+        c.classList.remove('selected');
+      } else if (focuses.length < 3) {
+        focuses.push(i);
+        c.classList.add('selected');
+      }
+      document.getElementById('focus-count').textContent = focuses.length;
+      updateProgress();
+    };
+    fWrap.appendChild(c);
+  });
+
+  // Competencies
+  const cWrap = document.getElementById('owner-scores');
+  OWNER_COMPETENCIES.forEach((item, i) => {
+    cWrap.appendChild(buildScoreRow('owner', 0, i, item.text, item.hint));
+  });
+
+  // Patterns
+  const pWrap = document.getElementById('patterns');
+  PATTERNS.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'pattern-item' + (patterns.includes(i) ? ' selected' : '');
+    div.innerHTML = `
+      <div class="pattern-check">${patterns.includes(i) ? '✓' : ''}</div>
+      <div>
+        <div class="pattern-title">${p.title}</div>
+        <div class="pattern-desc">${p.desc}</div>
+      </div>
+    `;
+    div.onclick = () => {
+      if (patterns.includes(i)) patterns = patterns.filter(x => x !== i);
+      else patterns.push(i);
+      div.classList.toggle('selected');
+      div.querySelector('.pattern-check').textContent = patterns.includes(i) ? '✓' : '';
+    };
+    pWrap.appendChild(div);
+  });
+}
+
+function buildScoreBlocks(section, containerId) {
+  const sec = SECTIONS[section];
+  const wrap = document.getElementById(containerId);
+  sec.blocks.forEach((block, bi) => {
+    const blockHead = document.createElement('div');
+    blockHead.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.14em;color:var(--text3);padding:16px 0 10px;border-bottom:1px solid var(--border);margin-bottom:12px;';
+    blockHead.textContent = block.title;
+    wrap.appendChild(blockHead);
+
+    block.items.forEach((item, ii) => {
+      wrap.appendChild(buildScoreRow(section, bi, ii, item.text, item.hint));
+    });
+  });
+}
+
+function buildScoreRow(section, bi, ii, text, hint) {
+  const key = `${section}_${bi}_${ii}`;
+  const val = scores[key] || 0;
+
+  const div = document.createElement('div');
+  div.className = 'score-block';
+  div.id = 'sb-' + key;
+
+  const barColor = val === 0 ? 'bar-red' : val <= 2 ? 'bar-red' : val <= 3 ? 'bar-orange' : val <= 4 ? 'bar-yellow' : 'bar-green';
+  const barWidth = val ? (val / 5 * 100) : 0;
+
+  div.innerHTML = `
+    <div class="score-header">
+      <div>
+        <div class="score-title">${text}</div>
+        <div class="score-hint">${hint}</div>
+      </div>
+      <div class="score-stars">
+        ${[1,2,3,4,5].map(n => `<button class="star-btn ${val >= n ? 'active' : ''}" onclick="setScore('${key}', ${n})">${n}</button>`).join('')}
+      </div>
+    </div>
+    <div class="score-bar-wrap"><div class="score-bar ${barColor}" style="width:${barWidth}%"></div></div>
+  `;
+  return div;
+}
+
+function setScore(key, val) {
+  scores[key] = val;
+  // Update UI
+  const sb = document.getElementById('sb-' + key);
+  if (sb) {
+    const btns = sb.querySelectorAll('.star-btn');
+    btns.forEach((b, i) => b.classList.toggle('active', i < val));
+    const bar = sb.querySelector('.score-bar');
+    bar.style.width = (val / 5 * 100) + '%';
+    bar.className = 'score-bar ' + (val <= 2 ? 'bar-red' : val <= 3 ? 'bar-orange' : val <= 4 ? 'bar-yellow' : 'bar-green');
+  }
+  updateSectionScore(key.split('_')[0]);
+  updateProgress();
+  updateResultsLive();
+}
+
+function updateSectionScore(section) {
+  const avg = getSectionAvg(section);
+  const el = document.getElementById(`score-${section}-display`);
+  if (el) {
+    el.textContent = avg > 0 ? avg.toFixed(1) : '—';
+    el.className = 'score-num ' + scoreColorClass(avg);
+  }
+  const badge = document.getElementById(`badge-${section}`);
+  if (badge) {
+    const total = section === 'owner' ? 8 : 15;
+    const filled = Object.keys(scores).filter(k => k.startsWith(section + '_') && scores[k] > 0).length;
+    badge.textContent = `${filled}/${total}`;
+    badge.style.background = filled === total ? 'var(--green-dim)' : 'var(--surface3)';
+    badge.style.color = filled === total ? 'var(--green)' : 'var(--text3)';
+  }
+}
+
+function getSectionAvg(section) {
+  const keys = Object.keys(scores).filter(k => k.startsWith(section + '_') && scores[k] > 0);
+  if (!keys.length) return 0;
+  return keys.reduce((s, k) => s + scores[k], 0) / keys.length;
+}
+
+function scoreColorClass(v) {
+  if (!v) return '';
+  if (v < 2) return 'col-red';
+  if (v < 3) return 'col-orange';
+  if (v < 4) return 'col-yellow';
+  return 'col-green';
+}
+
+function scoreBarClass(v) {
+  if (v <= 2) return 'bar-red';
+  if (v <= 3) return 'bar-orange';
+  if (v <= 4) return 'bar-yellow';
+  return 'bar-green';
+}
+
+function buildTools() {
+  const wrap = document.getElementById('tools-list');
+  Object.entries(TOOLS).forEach(([section, items]) => {
+    const sh = document.createElement('div');
+    sh.className = 'tools-section-head';
+    sh.innerHTML = `<span>${section}</span>`;
+    wrap.appendChild(sh);
+
+    const sec = document.createElement('div');
+    sec.className = 'tools-section';
+    items.forEach((t, i) => {
+      const key = `tool_${section}_${i}`;
+      const savedStatus = localStorage.getItem(key) || '';
+      const prioClass = t.prio.includes('Срочно') ? 'prio-urgent' : t.prio.includes('Важно') ? 'prio-important' : 'prio-prospect';
+      const row = document.createElement('div');
+      row.className = 'tool-item';
+      row.innerHTML = `
+        <div class="tool-info">
+          <div class="tool-name">${t.name}</div>
+          <div class="tool-desc">${t.desc}</div>
+        </div>
+        <span class="tool-priority ${prioClass}">${t.prio}</span>
+        <select class="tool-status-sel" onchange="localStorage.setItem('${key}', this.value)">
+          <option value="" ${!savedStatus ? 'selected' : ''}>— Выбрать статус</option>
+          <option value="plan" ${savedStatus === 'plan' ? 'selected' : ''}>📋 В плане</option>
+          <option value="wip" ${savedStatus === 'wip' ? 'selected' : ''}>✅ Внедряю</option>
+          <option value="done" ${savedStatus === 'done' ? 'selected' : ''}>✅ Внедрено</option>
+          <option value="skip" ${savedStatus === 'skip' ? 'selected' : ''}>⏭ Не актуально</option>
+        </select>
+      `;
+      sec.appendChild(row);
+    });
+    wrap.appendChild(sec);
+  });
+}
+
+function buildResults() {
+  updateResultsLive();
+}
+
+function updateResultsLive() {
+  const sections = [
+    { id: 'owner', label: '👤 Собственник' },
+    { id: 'marketing', label: '📣 Маркетинг' },
+    { id: 'sales', label: '💼 Продажи' },
+    { id: 'product', label: '📦 Продукт' },
+    { id: 'finance', label: '💰 Финансы' },
+    { id: 'management', label: '⚙️ Управление' },
+    { id: 'bizmodel', label: '🧩 Бизнес-модель' },
+  ];
+
+  const avgs = sections.map(s => ({ ...s, avg: getSectionAvg(s.id) }));
+
+  // Result grid
+  const rg = document.getElementById('result-grid');
+  if (rg) {
+    rg.innerHTML = '';
+    avgs.forEach(s => {
+      const v = s.avg;
+      const card = document.createElement('div');
+      card.className = 'result-card';
+      card.innerHTML = `
+        <div class="result-card-head">
+          <div class="result-card-label">${s.label}</div>
+          <div class="result-card-score ${scoreColorClass(v)}">${v > 0 ? v.toFixed(1) : '—'}</div>
+        </div>
+        <div class="score-bar-track">
+          <div class="score-bar-val ${scoreBarClass(v)}" style="width:${v > 0 ? (v/5*100) : 0}%"></div>
+        </div>
+      `;
+      rg.appendChild(card);
+    });
+  }
+
+  // Overview grid
+  const og = document.getElementById('overview-grid');
+  if (og) {
+    const total = avgs.filter(s => s.avg > 0).length;
+    const overall = total > 0 ? (avgs.reduce((s, x) => s + x.avg, 0) / avgs.length) : 0;
+    const filled = Object.keys(scores).filter(k => scores[k] > 0).length;
+    const maxFilled = 83;
+    og.innerHTML = `
+      <div class="ov-card">
+        <div class="ov-label">Общий балл</div>
+        <div class="ov-val ${scoreColorClass(overall)}">${overall > 0 ? overall.toFixed(1) : '—'}</div>
+        <div class="ov-sub">из 5.0</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-label">Заполнено</div>
+        <div class="ov-val">${filled}</div>
+        <div class="ov-sub">из ${maxFilled} критериев</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-label">Лидер</div>
+        <div class="ov-val" style="font-size:18px;">${avgs.filter(s=>s.avg>0).sort((a,b)=>b.avg-a.avg)[0]?.label || '—'}</div>
+        <div class="ov-sub">сильнейший блок</div>
+      </div>
+      <div class="ov-card">
+        <div class="ov-label">Слабое место</div>
+        <div class="ov-val" style="font-size:18px;">${avgs.filter(s=>s.avg>0).sort((a,b)=>a.avg-b.avg)[0]?.label || '—'}</div>
+        <div class="ov-sub">требует внимания</div>
+      </div>
+    `;
+  }
+
+  // Weakest
+  const wl = document.getElementById('weakest-list');
+  if (wl) {
+    wl.innerHTML = '';
+    const sorted = [...avgs].filter(s => s.avg > 0).sort((a, b) => a.avg - b.avg).slice(0, 3);
+    if (!sorted.length) {
+      wl.innerHTML = '<p style="color:var(--text3);font-size:13px;">Заполните оценки, чтобы увидеть слабые места</p>';
+    } else {
+      sorted.forEach((s, i) => {
+        const tips = {
+          marketing: 'Сформулируйте оффер и УТП → запустите 1 платный канал → настройте аналитику',
+          sales: 'Внедрите CRM → напишите скрипты → поставьте план с декомпозицией',
+          finance: 'Разделите счета → начните вести ДДС → посчитайте точку безубыточности',
+          management: 'Нарисуйте оргструктуру → введите еженедельные планёрки → внедрите таск-трекер',
+          owner: 'Запишитесь к ментору НОМАДС → начните коучинг → делегируйте 1 крупную задачу',
+          product: 'Опишите стандарты → запустите NPS → составьте роадмап продукта',
+          bizmodel: 'Нарисуйте Business Model Canvas → проверьте монетизацию → рассмотрите масштабирование',
+        };
+        const tip = tips[s.id] || '';
+        const div = document.createElement('div');
+        div.style.cssText = 'display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--border);';
+        div.innerHTML = `
+          <div style="width:28px;height:28px;border-radius:8px;background:var(--red-dim);color:var(--red);display:flex;align-items:center;justify-content:center;font-weight:900;font-family:'Unbounded',sans-serif;font-size:12px;flex-shrink:0;">${i+1}</div>
+          <div>
+            <div style="font-size:14px;font-weight:700;margin-bottom:4px;">${s.label} — <span class="col-red">${s.avg.toFixed(1)}</span></div>
+            <div style="font-size:12px;color:var(--text3);">${tip}</div>
+          </div>
+        `;
+        wl.appendChild(div);
+      });
+    }
+  }
+
+  // Radar
+  drawRadar(avgs);
+}
+
+function drawRadar(avgs) {
+  const svg = document.getElementById('radar-svg');
+  if (!svg) return;
+
+  const cx = 180, cy = 160, r = 120;
+  const n = avgs.length;
+  const labels = avgs.map(s => s.label.replace(/[^\w\s]/g, '').trim().split(' ').slice(-1)[0]);
+
+  function polar(angle, radius) {
+    return [
+      cx + radius * Math.cos(angle - Math.PI/2),
+      cy + radius * Math.sin(angle - Math.PI/2)
     ];
+  }
 
-    function num(id) {
-      return Number(document.getElementById(id).value) || 0;
-    }
+  let html = '';
 
-    function val(id) {
-      return document.getElementById(id).value || '—';
-    }
+  // Grid rings
+  [1,2,3,4,5].forEach(ring => {
+    const pts = avgs.map((_, i) => polar(2*Math.PI*i/n, r*ring/5)).map(p => p.join(',')).join(' ');
+    html += `<polygon points="${pts}" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  });
 
-    function percentChange(current, previous) {
-      if (!previous) return 'нет данных';
-      const change = ((current - previous) / previous) * 100;
-      const sign = change > 0 ? '+' : '';
-      return sign + change.toFixed(1) + '%';
-    }
+  // Axes
+  avgs.forEach((_, i) => {
+    const [x, y] = polar(2*Math.PI*i/n, r);
+    html += `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>`;
+  });
 
-    function money(n) {
-      return new Intl.NumberFormat('ru-RU').format(n) + ' ₽';
-    }
-
-    function moneyOrDash(id) {
-      const raw = document.getElementById(id).value;
-      if (raw === '') return 'нет данных';
-      return money(num(id));
-    }
-
-    function sanitizeNumberField(id) {
-      const el = document.getElementById(id);
-      if (!el || el.type !== 'number') return;
-      const value = Number(el.value);
-      if (value < 0) el.value = 0;
-    }
-
-    function sanitizeNumbers() {
-      fields.forEach(sanitizeNumberField);
-    }
-
-    function calculate() {
-      sanitizeNumbers();
-      const revenue = num('revenue');
-      const cost = num('cost');
-      const expenses = num('expenses');
-      const profit = revenue - cost - expenses;
-      const doneOrders = num('doneOrders');
-      const avg = doneOrders ? revenue / doneOrders : 0;
-
-      document.getElementById('profit').value = money(profit);
-      document.getElementById('averageCheck').value = doneOrders ? money(Math.round(avg)) : 'нет данных';
-      document.getElementById('revenueGrowth').value = percentChange(revenue, num('prevRevenue'));
-      document.getElementById('profitGrowth').value = percentChange(profit, num('prevProfit'));
-
-      const status = document.getElementById('profitStatus');
-      if (profit > 0) {
-        status.textContent = '✅ Компания в плюсе: прибыль ' + money(profit);
-        status.style.background = '#dcfce7';
-      } else if (profit < 0) {
-        status.textContent = '❌ Компания в минусе: убыток ' + money(Math.abs(profit));
-        status.style.background = '#fee2e2';
-      } else {
-        status.textContent = '⚠️ Ноль: бизнес не заработал';
-        status.style.background = '#fef9c3';
+  // Data polygon
+  const vals = avgs.map(s => s.avg || 0);
+  const hasSome = vals.some(v => v > 0);
+  if (hasSome) {
+    const pts = avgs.map((s, i) => polar(2*Math.PI*i/n, r * (s.avg || 0) / 5)).map(p => p.join(',')).join(' ');
+    html += `<polygon points="${pts}" fill="rgba(232,184,75,0.15)" stroke="#e8b84b" stroke-width="2"/>`;
+    avgs.forEach((s, i) => {
+      if (s.avg > 0) {
+        const [px, py] = polar(2*Math.PI*i/n, r * s.avg / 5);
+        html += `<circle cx="${px}" cy="${py}" r="4" fill="#e8b84b"/>`;
       }
+    });
+  }
 
-      return { revenue, cost, expenses, profit, doneOrders, avg };
+  // Labels
+  avgs.forEach((s, i) => {
+    const [lx, ly] = polar(2*Math.PI*i/n, r + 24);
+    const anchor = lx < cx - 10 ? 'end' : lx > cx + 10 ? 'start' : 'middle';
+    const parts = s.label.split(' ');
+    const lbl = parts.slice(1).join(' ') || parts[0];
+    html += `<text x="${lx}" y="${ly}" text-anchor="${anchor}" fill="rgba(255,255,255,0.5)" font-size="11" font-family="Mulish">${lbl}</text>`;
+    if (s.avg > 0) {
+      html += `<text x="${lx}" y="${ly+14}" text-anchor="${anchor}" fill="#e8b84b" font-size="10" font-family="Unbounded" font-weight="700">${s.avg.toFixed(1)}</text>`;
     }
+  });
 
-    function generateReport() {
-      const c = calculate();
-      const result = c.profit > 0 ? 'РОСТ / ПЛЮС' : c.profit < 0 ? 'УБЫТОК / МИНУС' : 'НОЛЬ';
+  svg.innerHTML = html;
+}
 
-      const report = `📊 ОТЧЁТ CRM HELLOCLIENT
+// ===================== NAVIGATION =====================
+const STEP_TITLES = {
+  onboarding: '📋 Онбординг',
+  owner: '👤 Собственник',
+  marketing: '📣 Маркетинг',
+  sales: '💼 Продажи',
+  product: '📦 Продукт',
+  finance: '💰 Финансы',
+  management: '⚙️ Управление',
+  bizmodel: '🧩 Бизнес-модель',
+  results: '📊 Результаты',
+  goals: '🎯 Мои цели',
+  tools: '🛠 Инструменты',
+};
 
-Дата: ${val('date')}
-Период: ${val('period')}
+function goToStep(id) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('step-' + id)?.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
+  });
+  document.getElementById('topbar-title').textContent = STEP_TITLES[id] || id;
+  window.scrollTo(0, 0);
+  closeSidebar();
+  if (id === 'results') { updateResultsLive(); }
+}
 
-1. ДЕНЬГИ
-Выручка: ${money(c.revenue)}
-Себестоимость: ${money(c.cost)}
-Расходы: ${money(c.expenses)}
-Прибыль: ${money(c.profit)}
-Итог: ${result}
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebar-overlay').classList.remove('open');
+}
 
-2. СРАВНЕНИЕ
-Выручка прошлого периода: ${moneyOrDash('prevRevenue')}
-Рост / падение выручки: ${percentChange(c.revenue, num('prevRevenue'))}
-Прибыль прошлого периода: ${moneyOrDash('prevProfit')}
-Рост / падение прибыли: ${percentChange(c.profit, num('prevProfit'))}
+// ===================== FINANCE CALC =====================
+function calcFinance() {
+  const rev = parseFloat(document.getElementById('revenue')?.value) || 0;
+  const exp = parseFloat(document.getElementById('expenses')?.value) || 0;
+  const profit = rev - exp;
+  const margin = rev > 0 ? (profit / rev * 100) : 0;
+  const pe = document.getElementById('profit');
+  const me = document.getElementById('margin');
+  if (pe) pe.textContent = profit.toLocaleString('ru') + ' ₽';
+  if (me) me.textContent = rev > 0 ? margin.toFixed(1) + '%' : '—';
+  if (pe) pe.style.color = profit >= 0 ? 'var(--green)' : 'var(--red)';
+}
 
-3. ЗАКАЗЫ
-Новые: ${val('newOrders')}
-В работе: ${val('workOrders')}
-Готовые: ${val('readyOrders')}
-Выданные: ${val('doneOrders')}
-Ждём запчасть: ${val('waitParts')}
-Средний чек: ${c.doneOrders ? money(Math.round(c.avg)) : 'нет данных'}
+// ===================== PROGRESS =====================
+function updateProgress() {
+  const filled = Object.keys(scores).filter(k => scores[k] > 0).length;
+  const total = 83;
+  const pct = Math.round(filled / total * 100);
+  const el = document.getElementById('progress-fill');
+  const txt = document.getElementById('progress-text');
+  if (el) el.style.width = pct + '%';
+  if (txt) txt.textContent = `Заполнено ${filled} из ${total}`;
 
-4. ГЛАВНАЯ ПРОБЛЕМА
-Проблема: ${val('mainProblem')}
-Описание: ${val('problemText')}
-Ответственный: ${val('responsible')}
+  ['owner','marketing','sales','product','finance','management','bizmodel'].forEach(updateSectionScore);
+}
 
-5. РЕШЕНИЕ
-Что делаем: ${val('actionText')}
-Срок: ${val('deadline')}
-Ожидаемый результат: ${moneyOrDash('expectedMoney')}
+// ===================== SAVE / LOAD =====================
+function saveField() {
+  const fields = ['name','company','industry','founded','stage','pain','revenue','expenses','avgcheck','clients','newclients','employees','team'];
+  const data = {};
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    if (el) data[f] = el.value;
+  });
+  localStorage.setItem('nomads_fields', JSON.stringify(data));
+}
 
-ПРОСЬБА К НАСТАВНИКУ:
-Разбери мой отчёт. Скажи прямо:
-1) где я теряю деньги;
-2) почему рост или убыток;
-3) что сделать завтра, чтобы увеличить прибыль.`;
+function saveData() {
+  localStorage.setItem('nomads_scores', JSON.stringify(scores));
+  localStorage.setItem('nomads_patterns', JSON.stringify(patterns));
+  localStorage.setItem('nomads_roles', JSON.stringify(roles));
+  localStorage.setItem('nomads_focuses', JSON.stringify(focuses));
+  saveField();
+  showToast('✅ Данные сохранены');
+}
 
-      document.getElementById('report').textContent = report;
-      saveData();
-    }
-
-    async function copyReport() {
-      generateReport();
-      const text = document.getElementById('report').textContent;
-      try {
-        await navigator.clipboard.writeText(text);
-        alert('Отчёт скопирован. Теперь отправь его наставнику.');
-      } catch (e) {
-        alert('Не получилось скопировать автоматически. Выдели текст вручную и скопируй.');
-      }
-    }
-
-    function clearForm() {
-      if (!confirm('Очистить все поля?')) return;
-      fields.forEach(id => document.getElementById(id).value = '');
-      document.getElementById('report').textContent = 'Нажми “Сформировать отчёт”.';
-      localStorage.removeItem('helloClientCheckData');
-      saveData();
-      calculate();
-    }
-
-    function saveData() {
-      const data = {};
-      fields.forEach(id => data[id] = document.getElementById(id).value);
-      localStorage.setItem('helloClientCheckData', JSON.stringify(data));
-    }
-
-    function loadData() {
-      const raw = localStorage.getItem('helloClientCheckData');
-      if (!raw) {
-        document.getElementById('date').valueAsDate = new Date();
-        return;
-      }
-      const data = JSON.parse(raw);
-      fields.forEach(id => {
-        if (data[id] !== undefined) document.getElementById(id).value = data[id];
+function loadData() {
+  try {
+    const s = localStorage.getItem('nomads_scores');
+    if (s) scores = JSON.parse(s);
+    const p = localStorage.getItem('nomads_patterns');
+    if (p) patterns = JSON.parse(p);
+    const r = localStorage.getItem('nomads_roles');
+    if (r) roles = JSON.parse(r);
+    const f = localStorage.getItem('nomads_focuses');
+    if (f) focuses = JSON.parse(f);
+    const fields = localStorage.getItem('nomads_fields');
+    if (fields) {
+      const data = JSON.parse(fields);
+      Object.entries(data).forEach(([k, v]) => {
+        const el = document.getElementById(k);
+        if (el) el.value = v;
       });
-      calculate();
     }
+  } catch(e) {}
+}
 
-    function initForm() {
-      loadData();
-      fields.forEach(id => {
-        const el = document.getElementById(id);
-        if (!el) return;
-        el.addEventListener('input', () => {
-          calculate();
-          saveData();
-        });
-        el.addEventListener('change', () => {
-          calculate();
-          saveData();
-        });
-      });
-      calculate();
-    }
+// Auto-save every 30s
+setInterval(saveData, 30000);
 
-    window.addEventListener('DOMContentLoaded', initForm);
-  </script>
+// ===================== TOAST =====================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===================== PDF EXPORT =====================
+function exportPDF() {
+  // Build PDF-friendly print page
+  const name = document.getElementById('name')?.value || 'Участник';
+  const company = document.getElementById('company')?.value || '';
+  const industry = document.getElementById('industry')?.value || '';
+  const stage = document.getElementById('stage')?.value || '';
+  const pain = document.getElementById('pain')?.value || '';
+  const date = new Date().toLocaleDateString('ru-RU');
+
+  const sections = [
+    { id: 'owner', label: '👤 Собственник' },
+    { id: 'marketing', label: '📣 Маркетинг' },
+    { id: 'sales', label: '💼 Продажи' },
+    { id: 'product', label: '📦 Продукт' },
+    { id: 'finance', label: '💰 Финансы' },
+    { id: 'management', label: '⚙️ Управление' },
+    { id: 'bizmodel', label: '🧩 Бизнес-модель' },
+  ];
+  const avgs = sections.map(s => ({ ...s, avg: getSectionAvg(s.id) }));
+  const overall = avgs.filter(s => s.avg > 0).length > 0
+    ? (avgs.reduce((sum, s) => sum + s.avg, 0) / avgs.length).toFixed(1) : '—';
+
+  const scoreBar = (val) => {
+    const pct = val > 0 ? Math.round(val/5*100) : 0;
+    const col = val <= 0 ? '#555' : val <= 2 ? '#e05c5c' : val <= 3 ? '#e07d3c' : val <= 4 ? '#e8b84b' : '#4caf7d';
+    return `<div style="background:#222;border-radius:4px;height:8px;width:100%;"><div style="background:${col};height:8px;border-radius:4px;width:${pct}%;"></div></div>`;
+  };
+
+  const weakest = [...avgs].filter(s => s.avg > 0).sort((a,b) => a.avg-b.avg).slice(0,3);
+
+  const html = `<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Диагностика НОМАДС — ${name}</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@400;700;900&family=Mulish:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Mulish', sans-serif; background: #fff; color: #111; line-height: 1.6; padding: 32px; max-width: 800px; margin: 0 auto; }
+  h1 { font-family: 'Unbounded', sans-serif; font-size: 22px; font-weight: 900; margin-bottom: 4px; }
+  .sub { color: #666; font-size: 13px; margin-bottom: 24px; }
+  .meta { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; font-size: 13px; }
+  .meta-item { background: #f5f4f0; border-radius: 6px; padding: 6px 12px; }
+  .meta-item b { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 2px; }
+  .section-title { font-family: 'Unbounded', sans-serif; font-size: 14px; font-weight: 700; margin: 24px 0 12px; border-left: 3px solid #e8b84b; padding-left: 10px; }
+  .score-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee; }
+  .score-label { flex: 1; font-size: 13px; }
+  .score-hint { color: #888; font-size: 11px; }
+  .score-val { font-family: 'Unbounded', sans-serif; font-weight: 900; font-size: 16px; width: 28px; text-align: right; flex-shrink:0; }
+  .bar-wrap { width: 120px; flex-shrink: 0; }
+  .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 24px; }
+  .sum-card { background: #f5f4f0; border-radius: 8px; padding: 14px 16px; }
+  .sum-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #888; margin-bottom: 4px; }
+  .sum-val { font-family: 'Unbounded', sans-serif; font-size: 20px; font-weight: 900; }
+  .weak-item { padding: 12px 0; border-bottom: 1px solid #eee; display:flex; gap:12px; align-items:flex-start; }
+  .weak-num { background:#fdecea;color:#e05c5c;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;flex-shrink:0; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #eee; color: #888; font-size: 11px; display:flex; justify-content:space-between; }
+  .pain-box { background: #fdfdf8; border: 1px solid #e8b84b; border-radius: 8px; padding: 14px 16px; margin-bottom: 24px; font-size: 13px; }
+  .pain-box b { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: #e8b84b; margin-bottom: 6px; }
+  @media print {
+    body { padding: 16px; }
+    @page { margin: 1cm; }
+  }
+</style>
+</head>
+<body>
+<h1>Диагностика бизнеса</h1>
+<div class="sub">Бизнес-клуб НОМАДС · Дата: ${date}</div>
+
+<div class="meta">
+  <div class="meta-item"><b>Имя</b>${name}</div>
+  ${company ? `<div class="meta-item"><b>Компания</b>${company}</div>` : ''}
+  ${industry ? `<div class="meta-item"><b>Сфера</b>${industry}</div>` : ''}
+  ${stage ? `<div class="meta-item"><b>Стадия</b>${stage}</div>` : ''}
+</div>
+
+${pain ? `<div class="pain-box"><b>Главная боль</b>${pain}</div>` : ''}
+
+<div class="section-title">Сводные результаты</div>
+<div class="summary-grid">
+  ${avgs.map(s => `<div class="sum-card">
+    <div class="sum-label">${s.label}</div>
+    <div class="sum-val" style="color:${s.avg<=0?'#999':s.avg<=2?'#e05c5c':s.avg<=3?'#e07d3c':s.avg<=4?'#e8b84b':'#4caf7d'}">${s.avg>0?s.avg.toFixed(1):'—'}</div>
+    ${s.avg > 0 ? scoreBar(s.avg) : ''}
+  </div>`).join('')}
+</div>
+<div class="sum-card" style="margin-bottom:24px;background:#f5f4f0;border-radius:8px;padding:14px 16px;">
+  <div class="sum-label">Общий балл</div>
+  <div class="sum-val">${overall}</div>
+</div>
+
+${weakest.length ? `
+<div class="section-title">3 слабейших направления</div>
+${weakest.map((s,i) => `<div class="weak-item">
+  <div class="weak-num">${i+1}</div>
+  <div>
+    <div style="font-weight:700;font-size:14px;">${s.label} — ${s.avg.toFixed(1)}</div>
+  </div>
+</div>`).join('')}
+` : ''}
+
+${avgs.map(s => {
+  const sec = SECTIONS[s.id];
+  if (!sec) {
+    // Owner
+    return `<div class="section-title">${s.label}</div>
+    ${OWNER_COMPETENCIES.map((item, i) => {
+      const val = scores[`owner_0_${i}`] || 0;
+      const col = val<=0?'#999':val<=2?'#e05c5c':val<=3?'#e07d3c':val<=4?'#e8b84b':'#4caf7d';
+      return `<div class="score-row">
+        <div class="score-label">${item.text}<div class="score-hint">${item.hint}</div></div>
+        <div class="bar-wrap">${scoreBar(val)}</div>
+        <div class="score-val" style="color:${col}">${val || '—'}</div>
+      </div>`;
+    }).join('')}`;
+  }
+  return `<div class="section-title">${s.label}</div>
+  ${sec.blocks.map((block, bi) => `
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#888;padding:10px 0 6px;">${block.title}</div>
+    ${block.items.map((item, ii) => {
+      const val = scores[`${s.id}_${bi}_${ii}`] || 0;
+      const col = val<=0?'#999':val<=2?'#e05c5c':val<=3?'#e07d3c':val<=4?'#e8b84b':'#4caf7d';
+      return `<div class="score-row">
+        <div class="score-label">${item.text}<div class="score-hint">${item.hint}</div></div>
+        <div class="bar-wrap">${scoreBar(val)}</div>
+        <div class="score-val" style="color:${col}">${val || '—'}</div>
+      </div>`;
+    }).join('')}
+  `).join('')}`;
+}).join('')}
+
+<div class="footer">
+  <span>НОМАДС · Диагностика бизнеса</span>
+  <span>${date}</span>
+</div>
+
+<script>window.onload = () => { window.print(); }<\/script>
+</body></html>`;
+
+  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  if (!win) {
+    showToast('⚠️ Разрешите всплывающие окна');
+  }
+}
+
+</script>
 </body>
 </html>
